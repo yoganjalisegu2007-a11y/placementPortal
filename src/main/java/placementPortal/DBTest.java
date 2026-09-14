@@ -1,34 +1,57 @@
 package placementPortal;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 
 public class DBTest {
 
     public static void main(String[] args) {
 
-        String url = "jdbc:mysql://localhost:3306/placement_Portal";
-        String user = "root";
-        String password = "YOUR_DATABASE_PASSWORD";
+        Connection con = null;
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            System.out.println("Testing database connection...");
 
-            Connection con = DriverManager.getConnection(
-                    url,
-                    user,
-                    password
-            );
+            con = DBConnection.getConnection();
 
-            System.out.println("Connected successfully!");
+            if (con != null && !con.isClosed()) {
 
-            con.close();
+                System.out.println("Database connection successful!");
+
+                System.out.println(
+                        "Connected to: " + con.getMetaData().getDatabaseProductName()
+                );
+
+                System.out.println(
+                        "Database: " + con.getCatalog()
+                );
+
+            } else {
+
+                System.out.println("Database connection failed.");
+
+            }
 
         } catch (Exception e) {
 
+            System.out.println("Database connection failed!");
+            System.out.println("Error: " + e.getMessage());
+
             e.printStackTrace();
 
+        } finally {
+
+            try {
+
+                if (con != null) {
+                    con.close();
+                    System.out.println("Database connection closed.");
+                }
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
         }
     }
 }

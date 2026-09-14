@@ -1,10 +1,8 @@
-
 package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -19,14 +17,6 @@ import javax.servlet.http.HttpSession;
 public class LoginServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -286,7 +276,6 @@ public class LoginServlet extends HttpServlet {
 
         out.println("<div class='links'>");
 
-        // IMPORTANT: RegisterServlet, NOT StudentServlet
         out.println("<a href='RegisterServlet'>Register New Account</a>");
 
         out.println("<a href='ResetPasswordServlet'>Forgot / Reset Password?</a>");
@@ -354,9 +343,11 @@ public class LoginServlet extends HttpServlet {
         if (email == null || email.trim().isEmpty()
                 || password == null || password.trim().isEmpty()) {
 
-            showMessage(response,
+            showMessage(
+                    response,
                     "Login Failed",
-                    "Please enter both email and password.");
+                    "Please enter both email and password."
+            );
 
             return;
         }
@@ -367,12 +358,8 @@ public class LoginServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD);
+            // NEW DATABASE CONNECTION
+            con = DBConnection.getConnection();
 
             String sql =
                     "SELECT id, name FROM students " +
@@ -387,10 +374,7 @@ public class LoginServlet extends HttpServlet {
 
             if (rs.next()) {
 
-                /*
-                 * Remove any previous session before creating
-                 * the student login session.
-                 */
+                // Remove any previous session
                 HttpSession oldSession =
                         request.getSession(false);
 
@@ -398,16 +382,19 @@ public class LoginServlet extends HttpServlet {
                     oldSession.invalidate();
                 }
 
+                // Create new student session
                 HttpSession session =
                         request.getSession(true);
 
                 session.setAttribute(
                         "studentId",
-                        rs.getInt("id"));
+                        rs.getInt("id")
+                );
 
                 session.setAttribute(
                         "studentName",
-                        rs.getString("name"));
+                        rs.getString("name")
+                );
 
                 // Prevent cached protected pages
                 response.setHeader(
@@ -435,13 +422,13 @@ public class LoginServlet extends HttpServlet {
 
         } catch (Exception e) {
 
+            e.printStackTrace();
+
             showMessage(
                     response,
                     "Unable to Process Login",
                     "Please check the database connection and try again."
             );
-
-            e.printStackTrace();
 
         } finally {
 
@@ -579,4 +566,3 @@ public class LoginServlet extends HttpServlet {
                 .replace("'", "&#39;");
     }
 }
-
