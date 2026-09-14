@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Placement Management System</title>
+
+<style>
+    /* =========================================================
+       RESET & GLOBAL STYLES
+    ========================================================= */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #17365d;
+        --primary-dark: #102846;
+        --secondary: #b08d57;
+        --secondary-light: #f5efe6;
+
+        --background: #f4f6f8;
+        --white: #ffffff;
+        --text: #243447;
+        --muted: #718096;
+
+        --border: #e2e8f0;
+
+        --success: #237a57;
+        --success-bg: #e8f5ee;
+
+        --warning: #a66a00;
+        --warning-bg: #fff5dc;
+
+        --danger: #a33a3a;
+        --danger-bg: #fbeaea;
+
+        --info: #2563a6;
+        --info-bg: #eaf3fb;
+
+        --sidebar-width: 250px;
+    }
+
+    body {
+        font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+        background: var(--background);
+        color: var(--text);
+        line-height: 1.5;
+    }
+
+    button,
+    input {
+        font-family: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* =========================================================
+       APP LAYOUT
+    ========================================================= */
+
+    .app {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
+
+    .sidebar {
+        width: var(--sidebar-width);
+        min-height: 100vh;
+        background: var(--primary-dark);
+        color: white;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .brand {
+        padding: 28px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-icon {
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        border-radius: 6px;
+    }
+
+    .brand h1 {
+        font-size: 16px;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+    }
+
+    .brand p {
+        color: #aebbc9;
+        font-size: 10px;
+        margin-top: 2px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    .navigation {
+        padding: 25px 14px;
+        flex: 1;
+    }
+
+    .nav-title {
+        color: #8393a7;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        padding: 0 12px 10px;
+        text-transform: uppercase;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 12px 14px;
+        margin-bottom: 4px;
+        border-radius: 5px;
+        color: #c8d1dc;
+        font-size: 13px;
+        transition: 0.2s ease;
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: white;
+    }
+
+    .nav-item.active {
+        background: #244b75;
+        color: white;
+        border-left: 3px solid var(--secondary);
+        padding-left: 11px;
+    }
+
+    .nav-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .sidebar-footer {
+        padding: 18px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .support-box {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        padding: 13px;
+    }
+
+    .support-box p {
+        color: #aebbc9;
+        font-size: 10px;
+        margin-bottom: 4px;
+    }
+
+    .support-box strong {
+        font-size: 11px;
+        color: white;
+    }
+
+    /* =========================================================
+       MAIN AREA
+    ========================================================= */
+
+    .main-wrapper {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+        min-height: 100vh;
+    }
+
+    /* =========================================================
+       TOP HEADER
+    ========================================================= */
+
+    .topbar {
+        height: 72px;
+        background: var(--white);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+        position: sticky;
+        top: 0;
+        z-index: 900;
+    }
+
+    .page-location {
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .page-location strong {
+        color: var(--text);
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+    }
+
+    .notification {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: white;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+    }
+
+    .notification-dot {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #b08d57;
+    }
+
+    .profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-left: 18px;
+        border-left: 1px solid var(--border);
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .profile-info strong {
+        display: block;
+        font-size: 12px;
+    }
+
+    .profile-info span {
+        color: var(--muted);
+        font-size: 10px;
+    }
+
+    /* =========================================================
+       CONTENT
+    ========================================================= */
+
+    .content {
+        padding: 30px 32px;
+        max-width: 1600px;
+        margin: auto;
+    }
+
+    .welcome-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 25px;
+    }
+
+    .welcome-section .eyebrow {
+        color: var(--secondary);
+        text-transform: uppercase;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        margin-bottom: 5px;
+    }
+
+    .welcome-section h2 {
+        font-size: 25px;
+        color: var(--primary);
+        font-weight: 700;
+    }
+
+    .welcome-section p {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .academic-year {
+        border: 1px solid var(--border);
+        background: white;
+        padding: 9px 14px;
+        border-radius: 5px;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .academic-year strong {
+        color: var(--primary);
+    }
+
+    /* =========================================================
+       STATISTICS
+    ========================================================= */
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        transition: 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(20, 40, 60, 0.07);
+    }
+
+    .stat-label {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+    }
+
+    .stat-number {
+        color: var(--primary);
+        font-size: 27px;
+        font-weight: 700;
+        margin: 5px 0;
+    }
+
+    .stat-change {
+        font-size: 10px;
+        color: var(--success);
+    }
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    /* =========================================================
+       GRID
+    ========================================================= */
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 22px;
+        margin-bottom: 22px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+    }
+
+    .card-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-size: 14px;
+        color: var(--primary);
+    }
+
+    .card-header p {
+        color: var(--muted);
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+    .view-all {
+        font-size: 10px;
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .view-all:hover {
+        color: var(--secondary);
+    }
+
+    .card-body {
+        padding: 18px 20px;
+    }
+
+    /* =========================================================
+       COMPANY CARDS
+    ========================================================= */
+
+    .company-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .company-item {
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        transition: 0.2s ease;
+    }
+
+    .company-item:hover {
+        border-color: #c6d0da;
+        background: #fcfdfe;
+    }
+
+    .company-main {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .company-logo {
+        width: 43px;
+        height: 43px;
+        border-radius: 5px;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .company-details h4 {
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 3px;
+    }
+
+    .company-details p {
+        color: var(--muted);
+        font-size: 10px;
+    }
+
+    .company-meta {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .meta-item {
+        text-align: right;
+    }
+
+    .meta-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .meta-item strong {
+        display: block;
+        color: var(--text);
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    /* =========================================================
+       STATUS BADGES
+    ========================================================= */
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .badge-upcoming {
+        background: var(--info-bg);
+        color: var(--info);
+    }
+
+    .badge-applied {
+        background: var(--warning-bg);
+        color: var(--warning);
+    }
+
+    .badge-shortlisted {
+        background: var(--info-bg);
+        color: var(--info);
+    }
+
+    .badge-placed {
+        background: var(--success-bg);
+        color: var(--success);
+    }
+
+    /* =========================================================
+       APPLICATIONS
+    ========================================================= */
+
+    .application-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .application {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .application:last-child {
+        border-bottom: none;
+    }
+
+    .application-company {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mini-logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 4px;
+        background: #edf1f5;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .application-company h4 {
+        font-size: 11px;
+    }
+
+    .application-company p {
+        font-size: 9px;
+        color: var(--muted);
+    }
+
+    /* =========================================================
+       TABLE
+    ========================================================= */
+
+    .table-card {
+        margin-bottom: 22px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #f8fafc;
+        color: var(--muted);
+        text-align: left;
+        padding: 12px 20px;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border);
+    }
+
+    td {
+        padding: 14px 20px;
+        font-size: 11px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    .company-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .company-cell-logo {
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 700;
+    }
+
+    .company-cell strong {
+        display: block;
+        font-size: 11px;
+    }
+
+    .company-cell span {
+        color: var(--muted);
+        font-size: 9px;
+    }
+
+    /* =========================================================
+       PLACEMENT SUMMARY
+    ========================================================= */
+
+    .placement-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 15px;
+    }
+
+    .placement-box {
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 16px;
+    }
+
+    .placement-box h4 {
+        color: var(--muted);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .placement-box strong {
+        display: block;
+        font-size: 22px;
+        color: var(--primary);
+        margin: 5px 0;
+    }
+
+    .placement-box p {
+        color: var(--muted);
+        font-size: 9px;
+    }
+
+    /* =========================================================
+       BUTTON
+    ========================================================= */
+
+    .btn {
+        border: none;
+        border-radius: 4px;
+        padding: 8px 13px;
+        font-size: 10px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background: white;
+        border: 1px solid var(--border);
+        color: var(--primary);
+    }
+
+    .btn-outline:hover {
+        border-color: var(--primary);
+    }
+
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+
+    footer {
+        padding: 20px 32px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* =========================================================
+       MOBILE MENU BUTTON
+    ========================================================= */
+
+    .menu-toggle {
+        display: none;
+        border: none;
+        background: none;
+        color: var(--primary);
+        font-size: 22px;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 1200px) {
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 850px) {
+
+        .sidebar {
+            transform: translateX(-100%);
+            transition: 0.25s ease;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .main-wrapper {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .menu-toggle {
+            display: block;
+        }
+
+        .topbar {
+            padding: 0 18px;
+        }
+
+        .content {
+            padding: 22px 18px;
+        }
+
+        .welcome-section {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .company-item {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .company-meta {
+            width: 100%;
+            justify-content: space-between;
+            text-align: left;
+        }
+
+        .meta-item {
+            text-align: left;
+        }
+    }
+
+    @media (max-width: 600px) {
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .topbar-right {
+            gap: 10px;
+        }
+
+        .profile-info {
+            display: none;
+        }
+
+        .profile {
+            padding-left: 8px;
+        }
+
+        .placement-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .company-meta {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        footer {
+            flex-direction: column;
+            gap: 5px;
+            padding: 18px;
+        }
+
+        .welcome-section h2 {
+            font-size: 21px;
+        }
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="app">
+
+```
+<!-- =========================================================
+     SIDEBAR
+========================================================== -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+
+        <div class="brand-top">
+
+            <div class="brand-icon">
+                🎓
+            </div>
+
+            <div>
+                <h1>PLACEMENT PORTAL</h1>
+                <p>Student Management System</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <nav class="navigation">
+
+        <div class="nav-title">
+            Main Menu
+        </div>
+
+        <a href="#" class="nav-item active">
+
+            <span class="nav-icon">⌂</span>
+
+            <span>Dashboard</span>
+
+        </a>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">▣</span>
+
+            <span>Companies</span>
+
+        </a>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">◉</span>
+
+            <span>Students</span>
+
+        </a>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">▤</span>
+
+            <span>Applications</span>
+
+        </a>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">★</span>
+
+            <span>Placements</span>
+
+        </a>
+
+
+        <div class="nav-title" style="margin-top: 25px;">
+            Account
+        </div>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">♙</span>
+
+            <span>My Profile</span>
+
+        </a>
+
+        <a href="#" class="nav-item">
+
+            <span class="nav-icon">⚙</span>
+
+            <span>Settings</span>
+
+        </a>
+
+    </nav>
+
+
+    <div class="sidebar-footer">
+
+        <div class="support-box">
+
+            <p>PLACEMENT CELL</p>
+
+            <strong>Student Support Centre</strong>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN WRAPPER
+========================================================== -->
+
+<div class="main-wrapper">
+
+
+    <!-- =====================================================
+         TOPBAR
+    ====================================================== -->
+
+    <header class="topbar">
+
+        <div style="display:flex; align-items:center; gap:15px;">
+
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                ☰
+            </button>
+
+            <div class="page-location">
+                Home / <strong>Dashboard</strong>
+            </div>
+
+        </div>
+
+
+        <div class="topbar-right">
+
+            <button class="notification" onclick="showNotification()">
+
+                ♢
+
+                <span class="notification-dot"></span>
+
+            </button>
+
+
+            <div class="profile">
+
+                <div class="avatar">
+                    YS
+                </div>
+
+                <div class="profile-info">
+
+                    <strong>Yoganjali Segu</strong>
+
+                    <span>Student</span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="content">
+
+
+        <!-- Welcome -->
+
+        <section class="welcome-section">
+
+            <div>
+
+                <div class="eyebrow">
+                    Student Dashboard
+                </div>
+
+                <h2>
+                    Welcome back, Yoganjali
+                </h2>
+
+                <p>
+                    Track your placement activities, applications and upcoming opportunities.
+                </p>
+
+            </div>
+
+
+            <div class="academic-year">
+
+                Academic Year:
+                <strong>2026 – 2027</strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             STATISTICS
+        ================================================== -->
+
+        <section class="stats-grid">
+
+
+            <div class="stat-card">
+
+                <div>
+
+                    <div class="stat-label">
+                        Companies
+                    </div>
+
+                    <div class="stat-number">
+                        24
+                    </div>
+
+                    <div class="stat-change">
+                        ↑ 8 new this year
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    ▣
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div>
+
+                    <div class="stat-label">
+                        Applications
+                    </div>
+
+                    <div class="stat-number">
+                        08
+                    </div>
+
+                    <div class="stat-change">
+                        ↑ 3 this month
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    ▤
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div>
+
+                    <div class="stat-label">
+                        Shortlisted
+                    </div>
+
+                    <div class="stat-number">
+                        03
+                    </div>
+
+                    <div class="stat-change">
+                        Active applications
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div>
+
+                    <div class="stat-label">
+                        Placement Status
+                    </div>
+
+                    <div class="stat-number">
+                        01
+                    </div>
+
+                    <div class="stat-change">
+                        Successfully placed
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    ★
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             UPCOMING COMPANIES + APPLICATIONS
+        ================================================== -->
+
+        <div class="dashboard-grid">
+
+
+            <!-- Upcoming Companies -->
+
+            <section class="card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h3>
+                            Upcoming Recruitment Drives
+                        </h3>
+
+                        <p>
+                            Companies scheduled to visit the campus
+                        </p>
+
+                    </div>
+
+                    <a href="#" class="view-all">
+                        View all
+                    </a>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="company-list">
+
+
+                        <!-- Infosys -->
+
+                        <div class="company-item">
+
+                            <div class="company-main">
+
+                                <div class="company-logo">
+                                    INF
+                                </div>
+
+                                <div class="company-details">
+
+                                    <h4>
+                                        Infosys
+                                    </h4>
+
+                                    <p>
+                                        Information Technology · Service Based
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="company-meta">
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Package
+                                    </span>
+
+                                    <strong>
+                                        ₹7.0 LPA
+                                    </strong>
+
+                                </div>
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Drive Date
+                                    </span>
+
+                                    <strong>
+                                        08 Sep 2026
+                                    </strong>
+
+                                </div>
+
+                                <span class="badge badge-upcoming">
+                                    Upcoming
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Amazon -->
+
+                        <div class="company-item">
+
+                            <div class="company-main">
+
+                                <div class="company-logo">
+                                    AMZ
+                                </div>
+
+                                <div class="company-details">
+
+                                    <h4>
+                                        Amazon
+                                    </h4>
+
+                                    <p>
+                                        E-Commerce · Product Based
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="company-meta">
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Package
+                                    </span>
+
+                                    <strong>
+                                        ₹12.0 LPA
+                                    </strong>
+
+                                </div>
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Drive Date
+                                    </span>
+
+                                    <strong>
+                                        15 Sep 2026
+                                    </strong>
+
+                                </div>
+
+                                <span class="badge badge-upcoming">
+                                    Upcoming
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TCS -->
+
+                        <div class="company-item">
+
+                            <div class="company-main">
+
+                                <div class="company-logo">
+                                    TCS
+                                </div>
+
+                                <div class="company-details">
+
+                                    <h4>
+                                        Tata Consultancy Services
+                                    </h4>
+
+                                    <p>
+                                        Information Technology · Service Based
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="company-meta">
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Package
+                                    </span>
+
+                                    <strong>
+                                        ₹6.5 LPA
+                                    </strong>
+
+                                </div>
+
+                                <div class="meta-item">
+
+                                    <span>
+                                        Drive Date
+                                    </span>
+
+                                    <strong>
+                                        22 Sep 2026
+                                    </strong>
+
+                                </div>
+
+                                <span class="badge badge-upcoming">
+                                    Upcoming
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Applications -->
+
+            <section class="card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h3>
+                            Recent Applications
+                        </h3>
+
+                        <p>
+                            Your latest application activity
+                        </p>
+
+                    </div>
+
+                    <a href="#" class="view-all">
+                        View all
+                    </a>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="application-list">
+
+
+                        <div class="application">
+
+                            <div class="application-company">
+
+                                <div class="mini-logo">
+                                    GGL
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        Google
+                                    </h4>
+
+                                    <p>
+                                        Software Engineer
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <span class="badge badge-shortlisted">
+                                Shortlisted
+                            </span>
+
+                        </div>
+
+
+                        <div class="application">
+
+                            <div class="application-company">
+
+                                <div class="mini-logo">
+                                    MS
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        Microsoft
+                                    </h4>
+
+                                    <p>
+                                        Software Developer
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <span class="badge badge-applied">
+                                Applied
+                            </span>
+
+                        </div>
+
+
+                        <div class="application">
+
+                            <div class="application-company">
+
+                                <div class="mini-logo">
+                                    INF
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        Infosys
+                                    </h4>
+
+                                    <p>
+                                        Systems Engineer
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <span class="badge badge-applied">
+                                Applied
+                            </span>
+
+                        </div>
+
+
+                        <div class="application">
+
+                            <div class="application-company">
+
+                                <div class="mini-logo">
+                                    TCS
+                                </div>
+
+                                <div>
+
+                                    <h4>
+                                        TCS
+                                    </h4>
+
+                                    <p>
+                                        Graduate Engineer
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <span class="badge badge-placed">
+                                Selected
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- =================================================
+             APPLICATION TABLE
+        ================================================== -->
+
+        <section class="card table-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h3>
+                        Application Overview
+                    </h3>
+
+                    <p>
+                        Current status of your placement applications
+                    </p>
+
+                </div>
+
+                <button class="btn btn-outline" onclick="filterApplications()">
+                    Filter
+                </button>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Company
+                            </th>
+
+                            <th>
+                                Position
+                            </th>
+
+                            <th>
+                                Package
+                            </th>
+
+                            <th>
+                                Applied On
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="applicationTable">
+
+
+                        <tr>
+
+                            <td>
+
+                                <div class="company-cell">
+
+                                    <div class="company-cell-logo">
+                                        GGL
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Google
+                                        </strong>
+
+                                        <span>
+                                            Product Based
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                Software Engineer
+                            </td>
+
+                            <td>
+                                ₹18 LPA
+                            </td>
+
+                            <td>
+                                28 Aug 2026
+                            </td>
+
+                            <td>
+
+                                <span class="badge badge-shortlisted">
+                                    Shortlisted
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <button class="btn btn-outline"
+                                        onclick="viewApplication('Google')">
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+
+                                <div class="company-cell">
+
+                                    <div class="company-cell-logo">
+                                        MS
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Microsoft
+                                        </strong>
+
+                                        <span>
+                                            Product Based
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                Software Developer
+                            </td>
+
+                            <td>
+                                ₹16 LPA
+                            </td>
+
+                            <td>
+                                25 Aug 2026
+                            </td>
+
+                            <td>
+
+                                <span class="badge badge-applied">
+                                    Applied
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <button class="btn btn-outline"
+                                        onclick="viewApplication('Microsoft')">
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+
+                                <div class="company-cell">
+
+                                    <div class="company-cell-logo">
+                                        INF
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Infosys
+                                        </strong>
+
+                                        <span>
+                                            Service Based
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                Systems Engineer
+                            </td>
+
+                            <td>
+                                ₹7 LPA
+                            </td>
+
+                            <td>
+                                22 Aug 2026
+                            </td>
+
+                            <td>
+
+                                <span class="badge badge-applied">
+                                    Applied
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <button class="btn btn-outline"
+                                        onclick="viewApplication('Infosys')">
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+
+                                <div class="company-cell">
+
+                                    <div class="company-cell-logo">
+                                        TCS
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            TCS
+                                        </strong>
+
+                                        <span>
+                                            Service Based
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                Graduate Engineer
+                            </td>
+
+                            <td>
+                                ₹6.5 LPA
+                            </td>
+
+                            <td>
+                                18 Aug 2026
+                            </td>
+
+                            <td>
+
+                                <span class="badge badge-placed">
+                                    Selected
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <button class="btn btn-outline"
+                                        onclick="viewApplication('TCS')">
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PLACEMENT SUMMARY
+        ================================================== -->
+
+        <section class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h3>
+                        Placement Summary
+                    </h3>
+
+                    <p>
+                        Current placement performance
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="placement-grid">
+
+
+                    <div class="placement-box">
+
+                        <h4>
+                            Total Students Placed
+                        </h4>
+
+                        <strong>
+                            86
+                        </strong>
+
+                        <p>
+                            Across all participating companies
+                        </p>
+
+                    </div>
+
+
+                    <div class="placement-box">
+
+                        <h4>
+                            Highest Package
+                        </h4>
+
+                        <strong>
+                            ₹24 LPA
+                        </strong>
+
+                        <p>
+                            Highest CTC offered this academic year
+                        </p>
+
+                    </div>
+
+
+                    <div class="placement-box">
+
+                        <h4>
+                            Average Package
+                        </h4>
+
+                        <strong>
+                            ₹8.4 LPA
+                        </strong>
+
+                        <p>
+                            Average CTC among placed students
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <span>
+            © 2026 Placement Management System
+        </span>
+
+        <span>
+            Placement & Training Cell · Student Portal
+        </span>
+
+    </footer>
+
+
+</div>
+```
+
+</div>
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+    /* =========================================================
+       SIDEBAR TOGGLE
+    ========================================================== */
+
+    function toggleSidebar() {
+
+        const sidebar = document.getElementById("sidebar");
+
+        sidebar.classList.toggle("open");
+
+    }
+
+
+    /* =========================================================
+       NOTIFICATION
+    ========================================================== */
+
+    function showNotification() {
+
+        alert(
+            "You have 3 placement notifications.\n\n" +
+            "• Amazon recruitment drive announced.\n" +
+            "• Google application shortlisted.\n" +
+            "• TCS selection result published."
+        );
+
+    }
+
+
+    /* =========================================================
+       APPLICATION VIEW
+    ========================================================== */
+
+    function viewApplication(company) {
+
+        alert(
+            "Application Details\n\n" +
+            "Company: " + company + "\n\n" +
+            "Your application details will be displayed here."
+        );
+
+    }
+
+
+    /* =========================================================
+       FILTER
+    ========================================================== */
+
+    function filterApplications() {
+
+        const table = document.getElementById("applicationTable");
+
+        const rows = table.getElementsByTagName("tr");
+
+        const option = prompt(
+            "Enter status to filter:\n\n" +
+            "Applied\n" +
+            "Shortlisted\n" +
+            "Selected\n" +
+            "All"
+        );
+
+        if (!option) {
+            return;
+        }
+
+        const filter = option.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+
+            const statusText =
+                rows[i].querySelector(".badge").textContent
+                .trim()
+                .toLowerCase();
+
+            if (
+                filter === "all" ||
+                statusText.includes(filter)
+            ) {
+
+                rows[i].style.display = "";
+
+            } else {
+
+                rows[i].style.display = "none";
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       NAVIGATION
+    ========================================================== */
+
+    const navItems =
+        document.querySelectorAll(".nav-item");
+
+    navItems.forEach(function(item) {
+
+        item.addEventListener("click", function(e) {
+
+            e.preventDefault();
+
+            navItems.forEach(function(nav) {
+
+                nav.classList.remove("active");
+
+            });
+
+            this.classList.add("active");
+
+        });
+
+    });
+
+</script>
+
+</body>
+</html>
