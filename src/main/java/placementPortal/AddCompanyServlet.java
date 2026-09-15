@@ -4,7 +4,6 @@ package placementPortal;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,19 +21,6 @@ public class AddCompanyServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     // ==============================
-    // DATABASE DETAILS
-    // ==============================
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
-
-    // ==============================
     // DO POST
     // ==============================
 
@@ -44,11 +30,9 @@ public class AddCompanyServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-
         response.setContentType("text/html;charset=UTF-8");
 
         PrintWriter out = response.getWriter();
-
 
         // ==============================
         // ADMIN LOGIN CHECK
@@ -64,7 +48,6 @@ public class AddCompanyServlet extends HttpServlet {
             return;
         }
 
-
         // ==============================
         // GET FORM DATA
         // ==============================
@@ -79,7 +62,6 @@ public class AddCompanyServlet extends HttpServlet {
         String branchType = request.getParameter("branch_type");
         String requiredSkills = request.getParameter("required_skills");
         String address = request.getParameter("address");
-
 
         // ==============================
         // CHECK EMPTY VALUES
@@ -104,7 +86,6 @@ public class AddCompanyServlet extends HttpServlet {
             return;
         }
 
-
         // ==============================
         // CONVERT CUTOFF
         // ==============================
@@ -125,7 +106,6 @@ public class AddCompanyServlet extends HttpServlet {
             return;
         }
 
-
         // ==============================
         // CHECK CUTOFF RANGE
         // ==============================
@@ -140,32 +120,18 @@ public class AddCompanyServlet extends HttpServlet {
             return;
         }
 
-
         Connection con = null;
         PreparedStatement checkPs = null;
         PreparedStatement insertPs = null;
         ResultSet rs = null;
 
-
         try {
 
             // ==============================
-            // LOAD MYSQL DRIVER
+            // CONNECT USING DBConnection
             // ==============================
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-
-            // ==============================
-            // CONNECT DATABASE
-            // ==============================
-
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
-
+            con = DBConnection.getConnection();
 
             // ==============================
             // CHECK DUPLICATE COMPANY ID
@@ -180,7 +146,6 @@ public class AddCompanyServlet extends HttpServlet {
 
             rs = checkPs.executeQuery();
 
-
             if (rs.next()) {
 
                 showMessage(out,
@@ -192,14 +157,13 @@ public class AddCompanyServlet extends HttpServlet {
                 return;
             }
 
-
             // Close duplicate-check resources
+
             rs.close();
             rs = null;
 
             checkPs.close();
             checkPs = null;
-
 
             // ==============================
             // INSERT COMPANY
@@ -212,9 +176,7 @@ public class AddCompanyServlet extends HttpServlet {
                     + "branches, branch_type) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-
             insertPs = con.prepareStatement(insertSql);
-
 
             insertPs.setString(1, companyId.trim());
             insertPs.setString(2, name.trim());
@@ -227,9 +189,7 @@ public class AddCompanyServlet extends HttpServlet {
             insertPs.setString(9, branches.trim());
             insertPs.setString(10, branchType.trim());
 
-
             int rows = insertPs.executeUpdate();
-
 
             // ==============================
             // CHECK INSERT RESULT
@@ -247,18 +207,6 @@ public class AddCompanyServlet extends HttpServlet {
                         false);
             }
 
-
-        } catch (ClassNotFoundException e) {
-
-            e.printStackTrace();
-
-            showMessage(out,
-                    "Driver Error",
-                    "MySQL JDBC Driver was not found. "
-                    + "Please check your MySQL Connector/J library.",
-                    false);
-
-
         } catch (SQLException e) {
 
             e.printStackTrace();
@@ -268,7 +216,6 @@ public class AddCompanyServlet extends HttpServlet {
                     "Unable to save company.<br><br>"
                     + "Error: " + escapeHtml(e.getMessage()),
                     false);
-
 
         } finally {
 
@@ -286,7 +233,6 @@ public class AddCompanyServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
-
             try {
 
                 if (checkPs != null) {
@@ -297,7 +243,6 @@ public class AddCompanyServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
-
             try {
 
                 if (insertPs != null) {
@@ -307,7 +252,6 @@ public class AddCompanyServlet extends HttpServlet {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
 
             try {
 
@@ -321,7 +265,6 @@ public class AddCompanyServlet extends HttpServlet {
         }
     }
 
-
     // ==============================
     // IF SOMEONE OPENS URL DIRECTLY
     // ==============================
@@ -333,7 +276,6 @@ public class AddCompanyServlet extends HttpServlet {
 
         response.sendRedirect("CompanyServlet");
     }
-
 
     // ==============================
     // SHOW MESSAGE
@@ -414,7 +356,6 @@ public class AddCompanyServlet extends HttpServlet {
 
         out.println("</html>");
     }
-
 
     // ==============================
     // HTML ESCAPE
