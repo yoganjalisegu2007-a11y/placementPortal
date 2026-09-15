@@ -3,7 +3,9 @@ package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,18 +19,6 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/HomeServlet")
 public class HomeServlet extends HttpServlet {
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    /*
-     * Put your MySQL password here.
-     * Do NOT share your real database password in messages.
-     */
-    private static final String DB_PASSWORD = "Yoganjali@123";
-
-
     @Override
     protected void doGet(HttpServletRequest request,
                           HttpServletResponse response)
@@ -38,26 +28,35 @@ public class HomeServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
 
+        /*
+         * =========================================================
+         * STUDENT SESSION
+         * =========================================================
+         */
+
         HttpSession session = request.getSession(false);
 
-        Integer studentId = null;
+        if (session == null ||
+                session.getAttribute("studentId") == null) {
 
-        if (session != null) {
-            studentId = (Integer) session.getAttribute("studentId");
+            response.sendRedirect("LoginServlet");
+            return;
         }
 
+        Integer studentId =
+                (Integer) session.getAttribute("studentId");
+
+        String studentName = "Student";
 
         int totalCompanies = 0;
         int totalApplications = 0;
         int myApplications = 0;
 
-        String studentName = "Student";
-
         /*
-         * Stores company IDs for which the current student
-         * has already applied.
+         * Stores company database IDs for which
+         * the current student has already applied.
          */
-        Set<Integer> appliedCompanies = new HashSet<>();
+        Set<Integer> appliedCompanies = new HashSet<Integer>();
 
 
         /*
@@ -66,120 +65,112 @@ public class HomeServlet extends HttpServlet {
          * =========================================================
          */
 
-        try {
+        try (Connection con = DBConnection.getConnection()) {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            /*
+             * TOTAL COMPANIES
+             */
+            try (PreparedStatement ps =
+                         con.prepareStatement(
+                                 "SELECT COUNT(*) FROM companies")) {
 
-            try (Connection con =
-                         DriverManager.getConnection(
-                                 DB_URL,
-                                 DB_USER,
-                                 DB_PASSWORD)) {
+                try (ResultSet rs = ps.executeQuery()) {
 
-
-                /*
-                 * TOTAL COMPANIES
-                 */
-                try (PreparedStatement ps =
-                             con.prepareStatement(
-                                     "SELECT COUNT(*) FROM companies")) {
-
-                    try (ResultSet rs = ps.executeQuery()) {
-
-                        if (rs.next()) {
-                            totalCompanies = rs.getInt(1);
-                        }
+                    if (rs.next()) {
+                        totalCompanies = rs.getInt(1);
                     }
                 }
+            }
 
 
-                /*
-                 * TOTAL APPLICATIONS
-                 */
-                try (PreparedStatement ps =
-                             con.prepareStatement(
-                                     "SELECT COUNT(*) FROM applications")) {
+            /*
+             * TOTAL APPLICATIONS
+             */
+            try (PreparedStatement ps =
+                         con.prepareStatement(
+                                 "SELECT COUNT(*) FROM applications")) {
 
-                    try (ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
 
-                        if (rs.next()) {
-                            totalApplications = rs.getInt(1);
-                        }
+                    if (rs.next()) {
+                        totalApplications = rs.getInt(1);
                     }
                 }
+            }
 
 
-                /*
-                 * CURRENT STUDENT INFORMATION
-                 */
-                if (studentId != null) {
+            /*
+             * CURRENT STUDENT INFORMATION
+             */
+            try (PreparedStatement ps =
+                         con.prepareStatement(
+                                 "SELECT name FROM students WHERE id = ?")) {
 
-                    try (PreparedStatement ps =
-                                 con.prepareStatement(
-                                         "SELECT name FROM students WHERE id = ?")) {
+                ps.setInt(1, studentId);
 
-                        ps.setInt(1, studentId);
+                try (ResultSet rs = ps.executeQuery()) {
 
-                        try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
 
-                            if (rs.next()) {
+                        String name = rs.getString("name");
 
-                                String name = rs.getString("name");
+                        if (name != null &&
+                                !name.trim().isEmpty()) {
 
-                                if (name != null && !name.trim().isEmpty()) {
-                                    studentName = name;
-                                }
-                            }
-                        }
-                    }
-
-
-                    /*
-                     * CURRENT STUDENT APPLICATION COUNT
-                     */
-                    try (PreparedStatement ps =
-                                 con.prepareStatement(
-                                         "SELECT COUNT(*) " +
-                                         "FROM applications " +
-                                         "WHERE student_id = ?")) {
-
-                        ps.setInt(1, studentId);
-
-                        try (ResultSet rs = ps.executeQuery()) {
-
-                            if (rs.next()) {
-                                myApplications = rs.getInt(1);
-                            }
-                        }
-                    }
-
-
-                    /*
-                     * COMPANIES ALREADY APPLIED TO
-                     */
-                    try (PreparedStatement ps =
-                                 con.prepareStatement(
-                                         "SELECT company_id " +
-                                         "FROM applications " +
-                                         "WHERE student_id = ?")) {
-
-                        ps.setInt(1, studentId);
-
-                        try (ResultSet rs = ps.executeQuery()) {
-
-                            while (rs.next()) {
-                                appliedCompanies.add(
-                                        rs.getInt("company_id")
-                                );
-                            }
+                            studentName = name;
                         }
                     }
                 }
             }
 
+
+            /*
+             * CURRENT STUDENT APPLICATION COUNT
+             */
+            try (PreparedStatement ps =
+                         con.prepareStatement(
+                                 "SELECT COUNT(*) " +
+                                 "FROM applications " +
+                                 "WHERE student_id = ?")) {
+
+                ps.setInt(1, studentId);
+
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    if (rs.next()) {
+                        myApplications = rs.getInt(1);
+                    }
+                }
+            }
+
+
+            /*
+             * COMPANIES ALREADY APPLIED TO
+             */
+            try (PreparedStatement ps =
+                         con.prepareStatement(
+                                 "SELECT company_id " +
+                                 "FROM applications " +
+                                 "WHERE student_id = ?")) {
+
+                ps.setInt(1, studentId);
+
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    while (rs.next()) {
+
+                        appliedCompanies.add(
+                                rs.getInt("company_id")
+                        );
+                    }
+                }
+            }
+
+
         } catch (Exception e) {
 
             e.printStackTrace();
+
         }
 
 
@@ -236,9 +227,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * SIDEBAR
-         * =========================================================
          */
 
         out.println(".sidebar {");
@@ -324,9 +313,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * MAIN
-         * =========================================================
          */
 
         out.println(".main {");
@@ -336,9 +323,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * TOPBAR
-         * =========================================================
          */
 
         out.println(".topbar {");
@@ -392,9 +377,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * CONTENT
-         * =========================================================
          */
 
         out.println(".content {");
@@ -405,9 +388,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * HERO
-         * =========================================================
          */
 
         out.println(".hero {");
@@ -486,9 +467,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * STATISTICS
-         * =========================================================
          */
 
         out.println(".stats-grid {");
@@ -546,9 +525,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * SEARCH
-         * =========================================================
          */
 
         out.println(".section-top {");
@@ -610,9 +587,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * COMPANY GRID
-         * =========================================================
          */
 
         out.println(".company-grid {");
@@ -689,9 +664,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * DETAILS
-         * =========================================================
          */
 
         out.println(".details {");
@@ -729,9 +702,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * SKILLS
-         * =========================================================
          */
 
         out.println(".skills {");
@@ -757,9 +728,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * CARD FOOTER
-         * =========================================================
          */
 
         out.println(".card-footer {");
@@ -805,9 +774,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * EMPTY / ERROR
-         * =========================================================
          */
 
         out.println(".empty {");
@@ -847,9 +814,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * FOOTER
-         * =========================================================
          */
 
         out.println(".footer {");
@@ -865,9 +830,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * RESPONSIVE
-         * =========================================================
          */
 
         out.println("@media(max-width:1100px) {");
@@ -976,9 +939,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * SIDEBAR
-         * =========================================================
          */
 
         out.println("<aside class='sidebar'>");
@@ -1005,8 +966,13 @@ public class HomeServlet extends HttpServlet {
                 "</a>"
         );
 
+        /*
+         * IMPORTANT:
+         * Student must use StudentCompanyServlet,
+         * NOT CompanyServlet.
+         */
         out.println(
-                "<a href='CompanyServlet'>" +
+                "<a href='StudentCompanyServlet'>" +
                 "<span class='nav-icon'>🏢</span>" +
                 "<span>Companies</span>" +
                 "</a>"
@@ -1019,8 +985,11 @@ public class HomeServlet extends HttpServlet {
                 "</a>"
         );
 
+        /*
+         * Student interview servlet
+         */
         out.println(
-                "<a href='InterviewServlet'>" +
+                "<a href='StudentInterviewServlet'>" +
                 "<span class='nav-icon'>🎤</span>" +
                 "<span>Interviews</span>" +
                 "</a>"
@@ -1033,7 +1002,10 @@ public class HomeServlet extends HttpServlet {
                 "</a>"
         );
 
-        out.println("<div class='nav-title' style='margin-top:25px;'>Account</div>");
+        out.println(
+                "<div class='nav-title' " +
+                "style='margin-top:25px;'>Account</div>"
+        );
 
         out.println(
                 "<a href='LogoutServlet'>" +
@@ -1048,9 +1020,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * MAIN
-         * =========================================================
          */
 
         out.println("<div class='main'>");
@@ -1072,7 +1042,8 @@ public class HomeServlet extends HttpServlet {
 
         String avatarText = "ST";
 
-        if (studentName != null && !studentName.trim().isEmpty()) {
+        if (studentName != null &&
+                !studentName.trim().isEmpty()) {
 
             avatarText =
                     studentName
@@ -1081,11 +1052,19 @@ public class HomeServlet extends HttpServlet {
                             .toUpperCase();
         }
 
-        out.println("<div class='avatar'>" + avatarText + "</div>");
+        out.println(
+                "<div class='avatar'>" +
+                escapeHtml(avatarText) +
+                "</div>"
+        );
 
         out.println("<div class='user-text'>");
 
-        out.println("<strong>" + studentName + "</strong>");
+        out.println(
+                "<strong>" +
+                escapeHtml(studentName) +
+                "</strong>"
+        );
 
         out.println("<span>Placement Candidate</span>");
 
@@ -1097,9 +1076,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * CONTENT
-         * =========================================================
          */
 
         out.println("<main class='content'>");
@@ -1113,7 +1090,11 @@ public class HomeServlet extends HttpServlet {
 
         out.println("<div class='hero-content'>");
 
-        out.println("<div class='hero-label'>Student Dashboard</div>");
+        out.println(
+                "<div class='hero-label'>" +
+                "Student Dashboard" +
+                "</div>"
+        );
 
         out.println(
                 "<h1>Welcome back, " +
@@ -1134,7 +1115,8 @@ public class HomeServlet extends HttpServlet {
         out.println("<div class='hero-action'>");
 
         out.println(
-                "<a href='AppliedServlet' class='view-apps-btn'>" +
+                "<a href='AppliedServlet' " +
+                "class='view-apps-btn'>" +
                 "VIEW MY APPLICATIONS →" +
                 "</a>"
         );
@@ -1145,9 +1127,7 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * STATISTICS
-         * =========================================================
          */
 
         out.println("<div class='stats-grid'>");
@@ -1161,7 +1141,11 @@ public class HomeServlet extends HttpServlet {
 
         out.println("<div class='stat-icon'>🏢</div>");
 
-        out.println("<div class='stat-title'>COMPANIES AVAILABLE</div>");
+        out.println(
+                "<div class='stat-title'>" +
+                "COMPANIES AVAILABLE" +
+                "</div>"
+        );
 
         out.println(
                 "<div class='stat-number'>" +
@@ -1169,7 +1153,11 @@ public class HomeServlet extends HttpServlet {
                 "</div>"
         );
 
-        out.println("<div class='stat-sub'>Recruiting companies</div>");
+        out.println(
+                "<div class='stat-sub'>" +
+                "Recruiting companies" +
+                "</div>"
+        );
 
         out.println("</div>");
 
@@ -1182,7 +1170,11 @@ public class HomeServlet extends HttpServlet {
 
         out.println("<div class='stat-icon'>💼</div>");
 
-        out.println("<div class='stat-title'>OPEN OPPORTUNITIES</div>");
+        out.println(
+                "<div class='stat-title'>" +
+                "OPEN OPPORTUNITIES" +
+                "</div>"
+        );
 
         out.println(
                 "<div class='stat-number'>" +
@@ -1190,7 +1182,11 @@ public class HomeServlet extends HttpServlet {
                 "</div>"
         );
 
-        out.println("<div class='stat-sub'>Current recruitment drives</div>");
+        out.println(
+                "<div class='stat-sub'>" +
+                "Current recruitment drives" +
+                "</div>"
+        );
 
         out.println("</div>");
 
@@ -1203,7 +1199,11 @@ public class HomeServlet extends HttpServlet {
 
         out.println("<div class='stat-icon'>📊</div>");
 
-        out.println("<div class='stat-title'>TOTAL APPLICATIONS</div>");
+        out.println(
+                "<div class='stat-title'>" +
+                "TOTAL APPLICATIONS" +
+                "</div>"
+        );
 
         out.println(
                 "<div class='stat-number'>" +
@@ -1211,7 +1211,11 @@ public class HomeServlet extends HttpServlet {
                 "</div>"
         );
 
-        out.println("<div class='stat-sub'>Applications received</div>");
+        out.println(
+                "<div class='stat-sub'>" +
+                "Applications received" +
+                "</div>"
+        );
 
         out.println("</div>");
 
@@ -1224,7 +1228,11 @@ public class HomeServlet extends HttpServlet {
 
         out.println("<div class='stat-icon'>📄</div>");
 
-        out.println("<div class='stat-title'>MY APPLICATIONS</div>");
+        out.println(
+                "<div class='stat-title'>" +
+                "MY APPLICATIONS" +
+                "</div>"
+        );
 
         out.println(
                 "<div class='stat-number'>" +
@@ -1232,7 +1240,11 @@ public class HomeServlet extends HttpServlet {
                 "</div>"
         );
 
-        out.println("<div class='stat-sub'>Applications submitted</div>");
+        out.println(
+                "<div class='stat-sub'>" +
+                "Applications submitted" +
+                "</div>"
+        );
 
         out.println("</div>");
 
@@ -1240,28 +1252,34 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
-         * SECTION HEADER + SEARCH
-         * =========================================================
+         * SECTION HEADER
          */
 
         out.println("<div class='section-top'>");
 
         out.println("<div class='section-title'>");
 
-        out.println("<small>Career Opportunities</small>");
-
-        out.println("<h2>Available Recruitment Drives</h2>");
+        out.println(
+                "<small>Career Opportunities</small>"
+        );
 
         out.println(
-                "<p>Explore companies and find the right opportunity for you.</p>"
+                "<h2>Available Recruitment Drives</h2>"
+        );
+
+        out.println(
+                "<p>" +
+                "Explore companies and find the right opportunity for you." +
+                "</p>"
         );
 
         out.println("</div>");
 
         out.println("<div class='search-box'>");
 
-        out.println("<span class='search-icon'>🔍</span>");
+        out.println(
+                "<span class='search-icon'>🔍</span>"
+        );
 
         out.println(
                 "<input type='text' " +
@@ -1275,377 +1293,388 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * COMPANY GRID
+         */
+
+        out.println(
+                "<div class='company-grid' " +
+                "id='companyGrid'>"
+        );
+
+
+        /*
+         * =========================================================
+         * LOAD COMPANIES
          * =========================================================
          */
 
-        out.println("<div class='company-grid' id='companyGrid'>");
+        try (Connection con = DBConnection.getConnection();
+
+             PreparedStatement ps =
+                     con.prepareStatement(
+                             "SELECT * " +
+                             "FROM companies " +
+                             "ORDER BY id DESC");
+
+             ResultSet rs = ps.executeQuery()) {
 
 
-        try {
-
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            try (Connection con =
-                         DriverManager.getConnection(
-                                 DB_URL,
-                                 DB_USER,
-                                 DB_PASSWORD);
-
-                 PreparedStatement ps =
-                         con.prepareStatement(
-                                 "SELECT * FROM companies ORDER BY id DESC");
-
-                 ResultSet rs = ps.executeQuery()) {
+            boolean found = false;
 
 
-                boolean found = false;
+            while (rs.next()) {
+
+                found = true;
 
 
-                while (rs.next()) {
+                int companyDbId =
+                        rs.getInt("id");
 
-                    found = true;
+                String companyName =
+                        rs.getString("name");
 
+                String companyId =
+                        rs.getString("company_id");
 
-                    int companyDbId =
-                            rs.getInt("id");
+                String hrName =
+                        rs.getString("hr_name");
 
+                String email =
+                        rs.getString("email");
 
-                    String companyName =
-                            rs.getString("name");
+                String branches =
+                        rs.getString("branches");
 
-                    String companyId =
-                            rs.getString("company_id");
+                String branchType =
+                        rs.getString("branch_type");
 
-                    String hrName =
-                            rs.getString("hr_name");
+                String skills =
+                        rs.getString("required_skills");
 
-                    String email =
-                            rs.getString("email");
-
-                    String branches =
-                            rs.getString("branches");
-
-                    String branchType =
-                            rs.getString("branch_type");
-
-                    String skills =
-                            rs.getString("required_skills");
-
-                    double cutoff =
-                            rs.getDouble("cutoff");
+                double cutoff =
+                        rs.getDouble("cutoff");
 
 
-                    /*
-                     * COMPANY INITIALS
-                     */
+                /*
+                 * COMPANY INITIALS
+                 */
 
-                    String initials = "CO";
+                String initials = "CO";
 
-                    if (companyName != null &&
-                            !companyName.trim().isEmpty()) {
+                if (companyName != null &&
+                        !companyName.trim().isEmpty()) {
 
-                        String[] words =
-                                companyName.trim().split("\\s+");
+                    String[] words =
+                            companyName
+                                    .trim()
+                                    .split("\\s+");
 
-                        if (words.length >= 2) {
+                    if (words.length >= 2) {
 
-                            initials =
-                                    (
-                                            words[0].substring(0, 1) +
-                                            words[1].substring(0, 1)
-                                    ).toUpperCase();
-
-                        } else {
-
-                            initials =
-                                    companyName
-                                            .substring(
-                                                    0,
-                                                    Math.min(
-                                                            2,
-                                                            companyName.length()
-                                                    )
-                                            )
-                                            .toUpperCase();
-                        }
-                    }
-
-
-                    /*
-                     * SEARCHABLE TEXT
-                     */
-
-                    String searchable =
-                            (
-                                    safe(companyName) + " " +
-                                    safe(branches) + " " +
-                                    safe(skills) + " " +
-                                    safe(branchType)
-                            ).toLowerCase();
-
-
-                    /*
-                     * COMPANY CARD
-                     */
-
-                    out.println(
-                            "<div class='company-card' " +
-                            "data-search='" +
-                            escapeHtml(searchable) +
-                            "'>"
-                    );
-
-
-                    /*
-                     * HEADER
-                     */
-
-                    out.println("<div class='company-header'>");
-
-                    out.println("<div class='company-name'>");
-
-                    out.println(
-                            "<div class='company-logo'>" +
-                            escapeHtml(initials) +
-                            "</div>"
-                    );
-
-                    out.println("<div>");
-
-                    out.println(
-                            "<h3>" +
-                            escapeHtml(companyName) +
-                            "</h3>"
-                    );
-
-                    out.println(
-                            "<div class='company-id'>" +
-                            "Company ID: " +
-                            escapeHtml(companyId) +
-                            "</div>"
-                    );
-
-                    out.println("</div>");
-
-                    out.println("</div>");
-
-
-                    /*
-                     * STATUS
-                     */
-
-                    if (studentId != null &&
-                            appliedCompanies.contains(companyDbId)) {
-
-                        out.println(
-                                "<span class='status applied-status'>" +
-                                "APPLIED" +
-                                "</span>"
-                        );
+                        initials =
+                                (
+                                        words[0].substring(0, 1) +
+                                        words[1].substring(0, 1)
+                                ).toUpperCase();
 
                     } else {
 
-                        out.println(
-                                "<span class='status'>" +
-                                "OPEN" +
-                                "</span>"
-                        );
+                        initials =
+                                companyName
+                                        .substring(
+                                                0,
+                                                Math.min(
+                                                        2,
+                                                        companyName.length()
+                                                )
+                                        )
+                                        .toUpperCase();
                     }
-
-                    out.println("</div>");
-
-
-                    /*
-                     * DETAILS
-                     */
-
-                    out.println("<div class='details'>");
-
-
-                    /*
-                     * HR
-                     */
-
-                    out.println("<div class='detail'>");
-
-                    out.println(
-                            "<span class='detail-label'>HR Person</span>"
-                    );
-
-                    out.println(
-                            "<span class='detail-value'>" +
-                            escapeHtml(hrName) +
-                            "</span>"
-                    );
-
-                    out.println("</div>");
-
-
-                    /*
-                     * EMAIL
-                     */
-
-                    out.println("<div class='detail'>");
-
-                    out.println(
-                            "<span class='detail-label'>Contact</span>"
-                    );
-
-                    out.println(
-                            "<span class='detail-value'>" +
-                            escapeHtml(email) +
-                            "</span>"
-                    );
-
-                    out.println("</div>");
-
-
-                    /*
-                     * BRANCH
-                     */
-
-                    out.println("<div class='detail'>");
-
-                    out.println(
-                            "<span class='detail-label'>Eligible Branches</span>"
-                    );
-
-                    out.println(
-                            "<span class='detail-value'>" +
-                            escapeHtml(branches) +
-                            "</span>"
-                    );
-
-                    out.println("</div>");
-
-
-                    /*
-                     * BRANCH TYPE
-                     */
-
-                    out.println("<div class='detail'>");
-
-                    out.println(
-                            "<span class='detail-label'>Branch Type</span>"
-                    );
-
-                    out.println(
-                            "<span class='detail-value'>" +
-                            escapeHtml(branchType) +
-                            "</span>"
-                    );
-
-                    out.println("</div>");
-
-
-                    /*
-                     * CGPA
-                     */
-
-                    out.println("<div class='detail'>");
-
-                    out.println(
-                            "<span class='detail-label'>Minimum CGPA</span>"
-                    );
-
-                    out.println(
-                            "<span class='detail-value'>" +
-                            String.format("%.2f", cutoff) +
-                            "</span>"
-                    );
-
-                    out.println("</div>");
-
-
-                    out.println("</div>");
-
-
-                    /*
-                     * SKILLS
-                     */
-
-                    out.println("<div class='skills'>");
-
-                    out.println(
-                            "<div class='skills-label'>" +
-                            "Required Skills" +
-                            "</div>"
-                    );
-
-                    out.println(
-                            "<div class='skills-value'>" +
-                            escapeHtml(skills) +
-                            "</div>"
-                    );
-
-                    out.println("</div>");
-
-
-                    /*
-                     * FOOTER
-                     */
-
-                    out.println("<div class='card-footer'>");
-
-                    out.println(
-                            "<div class='recruitment-text'>" +
-                            "🎯 Campus recruitment opportunity" +
-                            "</div>"
-                    );
-
-
-                    if (studentId == null) {
-
-                        out.println(
-                                "<span class='status'>" +
-                                "LOGIN REQUIRED" +
-                                "</span>"
-                        );
-
-                    } else if (appliedCompanies.contains(companyDbId)) {
-
-                        out.println(
-                                "<span class='already-applied'>" +
-                                "✓ ALREADY APPLIED" +
-                                "</span>"
-                        );
-
-                    } else {
-
-                        out.println(
-                                "<a class='apply-btn' " +
-                                "href='ApplyServlet?companyId=" +
-                                companyDbId +
-                                "'>" +
-                                "APPLY NOW →" +
-                                "</a>"
-                        );
-                    }
-
-
-                    out.println("</div>");
-
-                    out.println("</div>");
                 }
 
 
                 /*
-                 * NO COMPANIES
+                 * SEARCHABLE TEXT
                  */
 
-                if (!found) {
+                String searchable =
+                        (
+                                safe(companyName) + " " +
+                                safe(branches) + " " +
+                                safe(skills) + " " +
+                                safe(branchType)
+                        ).toLowerCase();
+
+
+                /*
+                 * COMPANY CARD
+                 */
+
+                out.println(
+                        "<div class='company-card' " +
+                        "data-search='" +
+                        escapeHtml(searchable) +
+                        "'>"
+                );
+
+
+                /*
+                 * HEADER
+                 */
+
+                out.println(
+                        "<div class='company-header'>"
+                );
+
+                out.println(
+                        "<div class='company-name'>"
+                );
+
+                out.println(
+                        "<div class='company-logo'>" +
+                        escapeHtml(initials) +
+                        "</div>"
+                );
+
+                out.println("<div>");
+
+                out.println(
+                        "<h3>" +
+                        escapeHtml(companyName) +
+                        "</h3>"
+                );
+
+                out.println(
+                        "<div class='company-id'>" +
+                        "Company ID: " +
+                        escapeHtml(companyId) +
+                        "</div>"
+                );
+
+                out.println("</div>");
+
+                out.println("</div>");
+
+
+                /*
+                 * STATUS
+                 */
+
+                if (appliedCompanies.contains(companyDbId)) {
 
                     out.println(
-                            "<div class='empty'>" +
-                            "<div class='empty-icon'>🏢</div>" +
-                            "<h3>No Recruitment Drives Available</h3>" +
-                            "<p>New opportunities will appear here when companies are added.</p>" +
-                            "</div>"
+                            "<span class='status applied-status'>" +
+                            "APPLIED" +
+                            "</span>"
+                    );
+
+                } else {
+
+                    out.println(
+                            "<span class='status'>" +
+                            "OPEN" +
+                            "</span>"
                     );
                 }
 
+                out.println("</div>");
+
+
+                /*
+                 * DETAILS
+                 */
+
+                out.println("<div class='details'>");
+
+
+                /*
+                 * HR
+                 */
+
+                out.println("<div class='detail'>");
+
+                out.println(
+                        "<span class='detail-label'>" +
+                        "HR Person" +
+                        "</span>"
+                );
+
+                out.println(
+                        "<span class='detail-value'>" +
+                        escapeHtml(hrName) +
+                        "</span>"
+                );
+
+                out.println("</div>");
+
+
+                /*
+                 * EMAIL
+                 */
+
+                out.println("<div class='detail'>");
+
+                out.println(
+                        "<span class='detail-label'>" +
+                        "Contact" +
+                        "</span>"
+                );
+
+                out.println(
+                        "<span class='detail-value'>" +
+                        escapeHtml(email) +
+                        "</span>"
+                );
+
+                out.println("</div>");
+
+
+                /*
+                 * BRANCH
+                 */
+
+                out.println("<div class='detail'>");
+
+                out.println(
+                        "<span class='detail-label'>" +
+                        "Eligible Branches" +
+                        "</span>"
+                );
+
+                out.println(
+                        "<span class='detail-value'>" +
+                        escapeHtml(branches) +
+                        "</span>"
+                );
+
+                out.println("</div>");
+
+
+                /*
+                 * BRANCH TYPE
+                 */
+
+                out.println("<div class='detail'>");
+
+                out.println(
+                        "<span class='detail-label'>" +
+                        "Branch Type" +
+                        "</span>"
+                );
+
+                out.println(
+                        "<span class='detail-value'>" +
+                        escapeHtml(branchType) +
+                        "</span>"
+                );
+
+                out.println("</div>");
+
+
+                /*
+                 * CGPA
+                 */
+
+                out.println("<div class='detail'>");
+
+                out.println(
+                        "<span class='detail-label'>" +
+                        "Minimum CGPA" +
+                        "</span>"
+                );
+
+                out.println(
+                        "<span class='detail-value'>" +
+                        String.format("%.2f", cutoff) +
+                        "</span>"
+                );
+
+                out.println("</div>");
+
+                out.println("</div>");
+
+
+                /*
+                 * SKILLS
+                 */
+
+                out.println("<div class='skills'>");
+
+                out.println(
+                        "<div class='skills-label'>" +
+                        "Required Skills" +
+                        "</div>"
+                );
+
+                out.println(
+                        "<div class='skills-value'>" +
+                        escapeHtml(skills) +
+                        "</div>"
+                );
+
+                out.println("</div>");
+
+
+                /*
+                 * FOOTER
+                 */
+
+                out.println("<div class='card-footer'>");
+
+                out.println(
+                        "<div class='recruitment-text'>" +
+                        "🎯 Campus recruitment opportunity" +
+                        "</div>"
+                );
+
+
+                /*
+                 * APPLY BUTTON
+                 */
+
+                if (appliedCompanies.contains(companyDbId)) {
+
+                    out.println(
+                            "<span class='already-applied'>" +
+                            "✓ ALREADY APPLIED" +
+                            "</span>"
+                    );
+
+                } else {
+
+                    out.println(
+                            "<a class='apply-btn' " +
+                            "href='ApplyServlet?companyId=" +
+                            companyDbId +
+                            "'>" +
+                            "APPLY NOW →" +
+                            "</a>"
+                    );
+                }
+
+
+                out.println("</div>");
+
+                out.println("</div>");
+            }
+
+
+            /*
+             * NO COMPANIES
+             */
+
+            if (!found) {
+
+                out.println(
+                        "<div class='empty'>" +
+                        "<div class='empty-icon'>🏢</div>" +
+                        "<h3>No Recruitment Drives Available</h3>" +
+                        "<p>" +
+                        "New opportunities will appear here " +
+                        "when companies are added." +
+                        "</p>" +
+                        "</div>"
+                );
             }
 
 
@@ -1653,12 +1682,16 @@ public class HomeServlet extends HttpServlet {
 
             out.println(
                     "<div class='error'>" +
-                    "<strong>Unable to load recruitment drives.</strong>" +
+                    "<strong>" +
+                    "Unable to load recruitment drives." +
+                    "</strong>" +
                     "<p style='margin-top:6px;'>" +
                     escapeHtml(e.getMessage()) +
                     "</p>" +
                     "</div>"
             );
+
+            e.printStackTrace();
         }
 
 
@@ -1666,19 +1699,21 @@ public class HomeServlet extends HttpServlet {
 
 
         /*
-         * =========================================================
          * FOOTER
-         * =========================================================
          */
 
         out.println("<footer class='footer'>");
 
         out.println(
-                "<span>© 2026 Placement Management System</span>"
+                "<span>" +
+                "© 2026 Placement Management System" +
+                "</span>"
         );
 
         out.println(
-                "<span>Placement & Training Cell</span>"
+                "<span>" +
+                "Placement & Training Cell" +
+                "</span>"
         );
 
         out.println("</footer>");
@@ -1697,11 +1732,13 @@ public class HomeServlet extends HttpServlet {
         out.println("<script>");
 
         out.println(
-                "const searchInput = document.getElementById('companySearch');"
+                "const searchInput = " +
+                "document.getElementById('companySearch');"
         );
 
         out.println(
-                "const cards = document.querySelectorAll('.company-card');"
+                "const cards = " +
+                "document.querySelectorAll('.company-card');"
         );
 
         out.println(
@@ -1717,11 +1754,13 @@ public class HomeServlet extends HttpServlet {
         );
 
         out.println(
-                "const text = card.getAttribute('data-search') || '';"
+                "const text = " +
+                "card.getAttribute('data-search') || '';"
         );
 
         out.println(
-                "card.style.display = text.includes(value) ? '' : 'none';"
+                "card.style.display = " +
+                "text.includes(value) ? '' : 'none';"
         );
 
         out.println(
