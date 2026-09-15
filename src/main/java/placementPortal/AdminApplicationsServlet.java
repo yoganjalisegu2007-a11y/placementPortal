@@ -1,8 +1,9 @@
+
 package placementPortal;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -18,12 +19,6 @@ public class AdminApplicationsServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
     // ---------------------------------------------------------
     // GET - Display all applications
     // ---------------------------------------------------------
@@ -32,7 +27,9 @@ public class AdminApplicationsServlet extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
 
+        // -----------------------------------------------------
         // Check admin login
+        // -----------------------------------------------------
         HttpSession session = request.getSession(false);
 
         if (session == null ||
@@ -42,6 +39,12 @@ public class AdminApplicationsServlet extends HttpServlet {
             response.sendRedirect("AdminLoginServlet");
             return;
         }
+
+        // Prevent browser caching of admin page
+        response.setHeader("Cache-Control",
+                "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
 
         response.setContentType("text/html;charset=UTF-8");
 
@@ -54,12 +57,18 @@ public class AdminApplicationsServlet extends HttpServlet {
         int selected = 0;
         int rejected = 0;
 
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // -------------------------------------------------
+            // Use central DB connection
+            // Works with Railway and local MySQL
+            // -------------------------------------------------
 
-            Connection con = DriverManager.getConnection(
-                    DB_URL, DB_USER, DB_PASSWORD);
+            con = DBConnection.getConnection();
 
             String sql =
                     "SELECT a.id, a.status, a.applied_date, " +
@@ -73,9 +82,9 @@ public class AdminApplicationsServlet extends HttpServlet {
                     "JOIN companies c ON a.company_id = c.id " +
                     "ORDER BY a.applied_date DESC";
 
-            PreparedStatement ps = con.prepareStatement(sql);
+            ps = con.prepareStatement(sql);
 
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
 
             // -------------------------------------------------
             // HTML START
@@ -84,12 +93,19 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
+
             out.println("<meta charset='UTF-8'>");
-            out.println("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+
+            out.println("<meta name='viewport' " +
+                    "content='width=device-width, initial-scale=1.0'>");
 
             out.println("<title>Manage Applications - Admin</title>");
 
             out.println("<style>");
+
+            // -------------------------------------------------
+            // General
+            // -------------------------------------------------
 
             out.println("* {");
             out.println("    box-sizing: border-box;");
@@ -103,7 +119,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    color: #222;");
             out.println("}");
 
+            // -------------------------------------------------
             // Sidebar
+            // -------------------------------------------------
+
             out.println(".sidebar {");
             out.println("    position: fixed;");
             out.println("    left: 0;");
@@ -145,7 +164,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    color: white;");
             out.println("}");
 
+            // -------------------------------------------------
             // Main
+            // -------------------------------------------------
+
             out.println(".main {");
             out.println("    margin-left: 250px;");
             out.println("    padding: 30px;");
@@ -170,7 +192,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    box-shadow: 0 2px 8px rgba(0,0,0,0.08);");
             out.println("}");
 
-            // Stats
+            // -------------------------------------------------
+            // Statistics
+            // -------------------------------------------------
+
             out.println(".stats {");
             out.println("    display: grid;");
             out.println("    grid-template-columns: repeat(6, 1fr);");
@@ -197,7 +222,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    color: #172554;");
             out.println("}");
 
-            // Table container
+            // -------------------------------------------------
+            // Table
+            // -------------------------------------------------
+
             out.println(".table-container {");
             out.println("    background: white;");
             out.println("    border-radius: 12px;");
@@ -235,7 +263,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    background: #f8fafc;");
             out.println("}");
 
-            // Status
+            // -------------------------------------------------
+            // Status badges
+            // -------------------------------------------------
+
             out.println(".status {");
             out.println("    padding: 6px 10px;");
             out.println("    border-radius: 20px;");
@@ -269,7 +300,10 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    color: #991b1b;");
             out.println("}");
 
-            // Form
+            // -------------------------------------------------
+            // Status form
+            // -------------------------------------------------
+
             out.println(".status-form {");
             out.println("    display: flex;");
             out.println("    gap: 7px;");
@@ -295,20 +329,30 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    background: #1d4ed8;");
             out.println("}");
 
+            // -------------------------------------------------
+            // Empty
+            // -------------------------------------------------
+
             out.println(".empty {");
             out.println("    text-align: center;");
             out.println("    padding: 40px;");
             out.println("    color: #64748b;");
             out.println("}");
 
+            // -------------------------------------------------
             // Responsive
+            // -------------------------------------------------
+
             out.println("@media(max-width: 1000px) {");
+
             out.println("    .stats {");
             out.println("        grid-template-columns: repeat(3, 1fr);");
             out.println("    }");
+
             out.println("}");
 
             out.println("@media(max-width: 700px) {");
+
             out.println("    .sidebar {");
             out.println("        position: relative;");
             out.println("        width: 100%;");
@@ -322,9 +366,11 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("    .stats {");
             out.println("        grid-template-columns: repeat(2, 1fr);");
             out.println("    }");
+
             out.println("}");
 
             out.println("</style>");
+
             out.println("</head>");
 
             out.println("<body>");
@@ -347,7 +393,8 @@ public class AdminApplicationsServlet extends HttpServlet {
 
             out.println("<a href='CompanyServlet'>Companies</a>");
 
-            out.println("<a href='AdminApplicationsServlet' class='active'>Applications</a>");
+            out.println("<a href='AdminApplicationsServlet' " +
+                    "class='active'>Applications</a>");
 
             out.println("<a href='AdminInterviewServlet'>Interviews</a>");
 
@@ -369,14 +416,16 @@ public class AdminApplicationsServlet extends HttpServlet {
                     (String) session.getAttribute("adminEmail");
 
             out.println("<div class='admin-name'>");
-            out.println("Admin: " + escapeHtml(adminEmail));
+
+            out.println("Admin: " +
+                    escapeHtml(adminEmail));
+
             out.println("</div>");
 
             out.println("</div>");
 
             // -------------------------------------------------
-            // We need to process the ResultSet twice.
-            // So first collect rows in HTML StringBuilder.
+            // Collect rows
             // -------------------------------------------------
 
             StringBuilder rows = new StringBuilder();
@@ -387,7 +436,9 @@ public class AdminApplicationsServlet extends HttpServlet {
 
                 String status = rs.getString("status");
 
-                if (status == null) {
+                if (status == null ||
+                    status.trim().isEmpty()) {
+
                     status = "APPLIED";
                 }
 
@@ -412,52 +463,96 @@ public class AdminApplicationsServlet extends HttpServlet {
                     case "REJECTED":
                         rejected++;
                         break;
+
+                    default:
+                        break;
                 }
 
                 String statusClass =
-                        status.toLowerCase().replace(" ", "");
+                        status.toLowerCase()
+                              .replace(" ", "");
 
                 rows.append("<tr>");
+
+                // -------------------------------------------------
+                // Application ID
+                // -------------------------------------------------
 
                 rows.append("<td>")
                     .append(rs.getInt("id"))
                     .append("</td>");
 
-                rows.append("<td>")
-                    .append(escapeHtml(rs.getString("student_name")))
-                    .append("<br><small>")
-                    .append(escapeHtml(rs.getString("student_email")))
-                    .append("</small></td>");
+                // -------------------------------------------------
+                // Student
+                // -------------------------------------------------
 
                 rows.append("<td>")
-                    .append(escapeHtml(rs.getString("branch")))
+                    .append(escapeHtml(
+                            rs.getString("student_name")))
+                    .append("<br><small>")
+                    .append(escapeHtml(
+                            rs.getString("student_email")))
+                    .append("</small>")
                     .append("</td>");
 
-                rows.append("<td>")
-                    .append(rs.getObject("cgpa") == null
-                            ? "-"
-                            : rs.getObject("cgpa"))
-                    .append("</td>");
+                // -------------------------------------------------
+                // Branch
+                // -------------------------------------------------
 
                 rows.append("<td>")
-                    .append(escapeHtml(rs.getString("company_name")))
+                    .append(escapeHtml(
+                            rs.getString("branch")))
+                    .append("</td>");
+
+                // -------------------------------------------------
+                // CGPA
+                // -------------------------------------------------
+
+                Object cgpa = rs.getObject("cgpa");
+
+                rows.append("<td>")
+                    .append(cgpa == null ? "-" : cgpa)
+                    .append("</td>");
+
+                // -------------------------------------------------
+                // Company
+                // -------------------------------------------------
+
+                rows.append("<td>")
+                    .append(escapeHtml(
+                            rs.getString("company_name")))
                     .append("<br><small>")
-                    .append(escapeHtml(rs.getString("company_id")))
-                    .append("</small></td>");
+                    .append(escapeHtml(
+                            rs.getString("company_id")))
+                    .append("</small>")
+                    .append("</td>");
+
+                // -------------------------------------------------
+                // Applied Date
+                // -------------------------------------------------
 
                 rows.append("<td>")
                     .append(rs.getTimestamp("applied_date"))
                     .append("</td>");
 
-                rows.append("<td>")
-                    .append("<span class='status ")
+                // -------------------------------------------------
+                // Current Status
+                // -------------------------------------------------
+
+                rows.append("<td>");
+
+                rows.append("<span class='status ")
                     .append(statusClass)
                     .append("'>")
                     .append(escapeHtml(status))
-                    .append("</span>")
-                    .append("</td>");
+                    .append("</span>");
 
-                // Admin status update form
+                rows.append("</td>");
+
+                // -------------------------------------------------
+                // Change Status
+                // -------------------------------------------------
+
                 rows.append("<td>");
 
                 rows.append("<form class='status-form' ")
@@ -498,7 +593,9 @@ public class AdminApplicationsServlet extends HttpServlet {
                 rows.append("</select>");
 
                 rows.append("<button type='submit' ")
-                    .append("class='update-btn'>Update</button>");
+                    .append("class='update-btn'>")
+                    .append("Update")
+                    .append("</button>");
 
                 rows.append("</form>");
 
@@ -506,6 +603,10 @@ public class AdminApplicationsServlet extends HttpServlet {
 
                 rows.append("</tr>");
             }
+
+            // -------------------------------------------------
+            // Statistics
+            // -------------------------------------------------
 
             out.println("<div class='stats'>");
 
@@ -552,8 +653,13 @@ public class AdminApplicationsServlet extends HttpServlet {
             if (totalApplications == 0) {
 
                 out.println("<div class='empty'>");
+
                 out.println("<h3>No applications found</h3>");
-                out.println("<p>Students have not applied to any company yet.</p>");
+
+                out.println("<p>");
+                out.println("Students have not applied to any company yet.");
+                out.println("</p>");
+
                 out.println("</div>");
 
             } else {
@@ -561,6 +667,7 @@ public class AdminApplicationsServlet extends HttpServlet {
                 out.println("<table>");
 
                 out.println("<thead>");
+
                 out.println("<tr>");
 
                 out.println("<th>ID</th>");
@@ -573,6 +680,7 @@ public class AdminApplicationsServlet extends HttpServlet {
                 out.println("<th>Change Status</th>");
 
                 out.println("</tr>");
+
                 out.println("</thead>");
 
                 out.println("<tbody>");
@@ -589,18 +697,43 @@ public class AdminApplicationsServlet extends HttpServlet {
             out.println("</div>");
 
             out.println("</body>");
-            out.println("</html>");
 
-            rs.close();
-            ps.close();
-            con.close();
+            out.println("</html>");
 
         } catch (Exception e) {
 
             e.printStackTrace();
 
+            response.setContentType("text/html;charset=UTF-8");
+
             out.println("<h2>Error loading applications</h2>");
-            out.println("<p>" + escapeHtml(e.getMessage()) + "</p>");
+
+            out.println("<p>" +
+                    escapeHtml(e.getMessage()) +
+                    "</p>");
+
+        } finally {
+
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception ignored) {
+            }
+
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (Exception ignored) {
+            }
+
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -612,7 +745,10 @@ public class AdminApplicationsServlet extends HttpServlet {
                            HttpServletResponse response)
             throws ServletException, IOException {
 
+        // -----------------------------------------------------
         // Check admin login
+        // -----------------------------------------------------
+
         HttpSession session = request.getSession(false);
 
         if (session == null ||
@@ -629,7 +765,10 @@ public class AdminApplicationsServlet extends HttpServlet {
         String status =
                 request.getParameter("status");
 
-        // Validate application ID
+        // -----------------------------------------------------
+        // Validate input
+        // -----------------------------------------------------
+
         if (applicationIdParam == null ||
             status == null ||
             status.trim().isEmpty()) {
@@ -642,7 +781,8 @@ public class AdminApplicationsServlet extends HttpServlet {
 
         try {
 
-            applicationId = Integer.parseInt(applicationIdParam);
+            applicationId =
+                    Integer.parseInt(applicationIdParam);
 
         } catch (NumberFormatException e) {
 
@@ -651,7 +791,7 @@ public class AdminApplicationsServlet extends HttpServlet {
         }
 
         // -----------------------------------------------------
-        // Only these statuses are allowed
+        // Only allowed statuses
         // -----------------------------------------------------
 
         String[] allowedStatuses = {
@@ -667,6 +807,7 @@ public class AdminApplicationsServlet extends HttpServlet {
         for (String allowed : allowedStatuses) {
 
             if (allowed.equals(status)) {
+
                 validStatus = true;
                 break;
             }
@@ -678,43 +819,80 @@ public class AdminApplicationsServlet extends HttpServlet {
             return;
         }
 
+        Connection con = null;
+        PreparedStatement ps = null;
+
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // -------------------------------------------------
+            // Use central DB connection
+            // -------------------------------------------------
 
-            Connection con = DriverManager.getConnection(
-                    DB_URL, DB_USER, DB_PASSWORD);
+            con = DBConnection.getConnection();
 
             String sql =
                     "UPDATE applications " +
                     "SET status = ? " +
                     "WHERE id = ?";
 
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
+            ps = con.prepareStatement(sql);
 
             ps.setString(1, status);
             ps.setInt(2, applicationId);
 
             ps.executeUpdate();
 
-            ps.close();
-            con.close();
-
-            // Return to application page
-            response.sendRedirect("AdminApplicationsServlet");
+            response.sendRedirect(
+                    "AdminApplicationsServlet");
 
         } catch (Exception e) {
 
             e.printStackTrace();
 
-            response.setContentType("text/html;charset=UTF-8");
+            response.setContentType(
+                    "text/html;charset=UTF-8");
 
-            PrintWriter out = response.getWriter();
+            PrintWriter out =
+                    response.getWriter();
 
-            out.println("<h2>Unable to update application status</h2>");
-            out.println("<p>" + escapeHtml(e.getMessage()) + "</p>");
-            out.println("<a href='AdminApplicationsServlet'>Back</a>");
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<meta charset='UTF-8'>");
+            out.println("<title>Update Error</title>");
+            out.println("</head>");
+            out.println("<body>");
+
+            out.println("<h2>");
+            out.println("Unable to update application status");
+            out.println("</h2>");
+
+            out.println("<p>");
+            out.println(escapeHtml(e.getMessage()));
+            out.println("</p>");
+
+            out.println("<a href='AdminApplicationsServlet'>");
+            out.println("Back to Applications");
+            out.println("</a>");
+
+            out.println("</body>");
+            out.println("</html>");
+
+        } finally {
+
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (Exception ignored) {
+            }
+
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Exception ignored) {
+            }
         }
     }
 
