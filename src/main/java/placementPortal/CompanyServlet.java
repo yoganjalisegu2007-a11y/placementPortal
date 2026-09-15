@@ -1,10 +1,8 @@
-
 package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,21 +19,17 @@ public class CompanyServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    // Database details
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "YOUR_DATABASE_PASSWORD";
-
     @Override
     protected void doGet(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException {
 
         response.setContentType("text/html; charset=UTF-8");
+
+        // Prevent browser from showing old cached admin page
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
 
         PrintWriter out = response.getWriter();
 
@@ -60,8 +54,12 @@ public class CompanyServlet extends HttpServlet {
         out.println("<!DOCTYPE html>");
         out.println("<html>");
         out.println("<head>");
+
         out.println("<meta charset='UTF-8'>");
-        out.println("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+
+        out.println("<meta name='viewport' "
+                + "content='width=device-width, initial-scale=1.0'>");
+
         out.println("<title>Company Management - Admin</title>");
 
         // ============================
@@ -82,7 +80,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    color: #333;");
         out.println("}");
 
-        // Sidebar
+        /* Sidebar */
+
         out.println(".sidebar {");
         out.println("    position: fixed;");
         out.println("    left: 0;");
@@ -120,7 +119,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    margin-top: 30px;");
         out.println("}");
 
-        // Main content
+        /* Main content */
+
         out.println(".main {");
         out.println("    margin-left: 240px;");
         out.println("    padding: 30px;");
@@ -138,7 +138,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    color: #111827;");
         out.println("}");
 
-        // Card
+        /* Card */
+
         out.println(".card {");
         out.println("    background: white;");
         out.println("    padding: 25px;");
@@ -152,7 +153,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    color: #1f2937;");
         out.println("}");
 
-        // Form
+        /* Form */
+
         out.println(".form-grid {");
         out.println("    display: grid;");
         out.println("    grid-template-columns: repeat(2, 1fr);");
@@ -191,7 +193,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    min-height: 80px;");
         out.println("}");
 
-        // Buttons
+        /* Buttons */
+
         out.println(".button-group {");
         out.println("    margin-top: 20px;");
         out.println("    display: flex;");
@@ -224,7 +227,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    background: #4b5563;");
         out.println("}");
 
-        // Table
+        /* Table */
+
         out.println(".table-container {");
         out.println("    overflow-x: auto;");
         out.println("}");
@@ -253,7 +257,8 @@ public class CompanyServlet extends HttpServlet {
         out.println("    background: #f9fafb;");
         out.println("}");
 
-        // Action buttons
+        /* Action buttons */
+
         out.println(".action-btn {");
         out.println("    display: inline-block;");
         out.println("    padding: 7px 10px;");
@@ -276,8 +281,10 @@ public class CompanyServlet extends HttpServlet {
         out.println("    background: #16a34a;");
         out.println("}");
 
-        // Responsive
+        /* Responsive */
+
         out.println("@media(max-width: 900px) {");
+
         out.println("    .sidebar {");
         out.println("        width: 200px;");
         out.println("    }");
@@ -293,9 +300,11 @@ public class CompanyServlet extends HttpServlet {
         out.println("    .form-group.full {");
         out.println("        grid-column: span 1;");
         out.println("    }");
+
         out.println("}");
 
         out.println("</style>");
+
         out.println("</head>");
 
         // ============================
@@ -333,7 +342,9 @@ public class CompanyServlet extends HttpServlet {
         out.println("<div class='main'>");
 
         out.println("<div class='header'>");
+
         out.println("<h1>Company Management</h1>");
+
         out.println("</div>");
 
         // ============================
@@ -349,98 +360,153 @@ public class CompanyServlet extends HttpServlet {
         out.println("<div class='form-grid'>");
 
         // Company ID
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Company ID</label>");
-        out.println("<input type='text' name='company_id' required>");
+
+        out.println("<input type='text' "
+                + "name='company_id' required>");
+
         out.println("</div>");
 
         // Company Name
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Company Name</label>");
-        out.println("<input type='text' name='name' required>");
+
+        out.println("<input type='text' "
+                + "name='name' required>");
+
         out.println("</div>");
 
         // Email
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Company Email</label>");
-        out.println("<input type='email' name='email' required>");
+
+        out.println("<input type='email' "
+                + "name='email' required>");
+
         out.println("</div>");
 
         // Contact
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Contact Number</label>");
-        out.println("<input type='text' name='contact_no' required>");
+
+        out.println("<input type='text' "
+                + "name='contact_no' required>");
+
         out.println("</div>");
 
         // HR Name
+
         out.println("<div class='form-group'>");
+
         out.println("<label>HR Name</label>");
-        out.println("<input type='text' name='hr_name' required>");
+
+        out.println("<input type='text' "
+                + "name='hr_name' required>");
+
         out.println("</div>");
 
         // Cutoff
+
         out.println("<div class='form-group'>");
+
         out.println("<label>CGPA Cutoff</label>");
-        out.println("<input type='number' step='0.01' min='0' max='10' "
+
+        out.println("<input type='number' "
+                + "step='0.01' "
+                + "min='0' "
+                + "max='10' "
                 + "name='cutoff' required>");
+
         out.println("</div>");
 
         // Branches
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Eligible Branches</label>");
-        out.println("<input type='text' name='branches' "
-                + "placeholder='IT, CSE, ECE' required>");
+
+        out.println("<input type='text' "
+                + "name='branches' "
+                + "placeholder='IT, CSE, ECE' "
+                + "required>");
+
         out.println("</div>");
 
         // Branch Type
+
         out.println("<div class='form-group'>");
+
         out.println("<label>Branch Type</label>");
 
         out.println("<select name='branch_type' required>");
 
         out.println("<option value=''>Select Branch Type</option>");
+
         out.println("<option value='Engineering'>Engineering</option>");
+
         out.println("<option value='IT'>IT</option>");
+
         out.println("<option value='Core'>Core</option>");
+
         out.println("<option value='Management'>Management</option>");
+
         out.println("<option value='All'>All Branches</option>");
 
         out.println("</select>");
+
         out.println("</div>");
 
         // Skills
+
         out.println("<div class='form-group full'>");
 
         out.println("<label>Required Skills</label>");
 
-        out.println("<input type='text' name='required_skills' "
-                + "placeholder='Java, Python, SQL, Communication' required>");
+        out.println("<input type='text' "
+                + "name='required_skills' "
+                + "placeholder='Java, Python, SQL, Communication' "
+                + "required>");
 
         out.println("</div>");
 
         // Address
+
         out.println("<div class='form-group full'>");
 
         out.println("<label>Company Address</label>");
 
         out.println("<textarea name='address' "
-                + "placeholder='Enter complete company address' required></textarea>");
+                + "placeholder='Enter complete company address' "
+                + "required></textarea>");
 
         out.println("</div>");
 
         out.println("</div>");
 
         // Buttons
+
         out.println("<div class='button-group'>");
 
-        out.println("<button type='submit' name='action' "
-                + "value='save' class='btn btn-save'>");
+        out.println("<button type='submit' "
+                + "name='action' "
+                + "value='save' "
+                + "class='btn btn-save'>");
 
         out.println("Add Company");
 
         out.println("</button>");
 
-        out.println("<button type='reset' class='btn btn-reset'>");
+        out.println("<button type='reset' "
+                + "class='btn btn-reset'>");
 
         out.println("Clear");
 
@@ -467,14 +533,23 @@ public class CompanyServlet extends HttpServlet {
         out.println("<tr>");
 
         out.println("<th>ID</th>");
+
         out.println("<th>Company ID</th>");
+
         out.println("<th>Name</th>");
+
         out.println("<th>Email</th>");
+
         out.println("<th>Contact</th>");
+
         out.println("<th>HR</th>");
+
         out.println("<th>Cutoff</th>");
+
         out.println("<th>Branches</th>");
+
         out.println("<th>Skills</th>");
+
         out.println("<th>Actions</th>");
 
         out.println("</tr>");
@@ -485,24 +560,34 @@ public class CompanyServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            /*
+             * IMPORTANT:
+             * Use the common DBConnection class.
+             *
+             * Local:
+             *     localhost MySQL
+             *
+             * Railway:
+             *     Railway MySQL
+             *
+             * DBConnection automatically selects
+             * the correct database connection.
+             */
 
-            Connection con =
-                    DriverManager.getConnection(
-                            DB_URL,
-                            DB_USER,
-                            DB_PASSWORD
-                    );
+            Connection con = DBConnection.getConnection();
 
             String sql =
-                    "SELECT id, company_id, name, email, contact_no, "
-                    + "hr_name, cutoff, branches, required_skills "
+                    "SELECT id, company_id, name, email, "
+                    + "contact_no, hr_name, cutoff, branches, "
+                    + "required_skills "
                     + "FROM companies "
                     + "ORDER BY id DESC";
 
-            PreparedStatement ps = con.prepareStatement(sql);
+            PreparedStatement ps =
+                    con.prepareStatement(sql);
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs =
+                    ps.executeQuery();
 
             boolean found = false;
 
@@ -510,65 +595,118 @@ public class CompanyServlet extends HttpServlet {
 
                 found = true;
 
-                int id = rs.getInt("id");
+                int id =
+                        rs.getInt("id");
 
-                String companyId = rs.getString("company_id");
-                String name = rs.getString("name");
-                String email = rs.getString("email");
-                String contact = rs.getString("contact_no");
-                String hrName = rs.getString("hr_name");
-                double cutoff = rs.getDouble("cutoff");
-                String branches = rs.getString("branches");
-                String skills = rs.getString("required_skills");
+                String companyId =
+                        rs.getString("company_id");
+
+                String name =
+                        rs.getString("name");
+
+                String email =
+                        rs.getString("email");
+
+                String contact =
+                        rs.getString("contact_no");
+
+                String hrName =
+                        rs.getString("hr_name");
+
+                double cutoff =
+                        rs.getDouble("cutoff");
+
+                String branches =
+                        rs.getString("branches");
+
+                String skills =
+                        rs.getString("required_skills");
 
                 out.println("<tr>");
 
-                out.println("<td>" + id + "</td>");
+                out.println("<td>"
+                        + id
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(companyId) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(companyId)
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(name) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(name)
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(email) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(email)
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(contact) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(contact)
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(hrName) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(hrName)
+                        + "</td>");
 
-                out.println("<td>" + cutoff + "</td>");
+                out.println("<td>"
+                        + cutoff
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(branches) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(branches)
+                        + "</td>");
 
-                out.println("<td>" + escapeHtml(skills) + "</td>");
+                out.println("<td>"
+                        + escapeHtml(skills)
+                        + "</td>");
 
-                // Actions
+                // ============================
+                // ACTIONS
+                // ============================
+
                 out.println("<td>");
+
+                // Edit
 
                 out.println("<a class='action-btn edit' "
                         + "href='EditCompanyServlet?id="
-                        + id + "'>Edit</a>");
+                        + id
+                        + "'>Edit</a>");
+
+                // Delete
 
                 out.println("<a class='action-btn delete' "
                         + "href='DeleteCompanyServlet?id="
                         + id
-                        + "' onclick=\"return confirm('Are you sure you want to delete this company?');\">"
+                        + "' "
+                        + "onclick=\"return confirm("
+                        + "'Are you sure you want to delete "
+                        + "this company?');\">"
                         + "Delete</a>");
+
+                // Applicants
 
                 out.println("<a class='action-btn applicants' "
                         + "href='ViewApplicantsServlet?companyId="
-                        + id + "'>Applicants</a>");
+                        + id
+                        + "'>Applicants</a>");
 
                 out.println("</td>");
 
                 out.println("</tr>");
             }
 
+            // ============================
+            // NO COMPANIES
+            // ============================
+
             if (!found) {
 
                 out.println("<tr>");
 
                 out.println("<td colspan='10' "
-                        + "style='text-align:center;padding:25px;'>");
+                        + "style='text-align:center;"
+                        + "padding:25px;'>");
 
                 out.println("No companies registered yet.");
 
@@ -577,31 +715,21 @@ public class CompanyServlet extends HttpServlet {
                 out.println("</tr>");
             }
 
+            // Close resources
+
             rs.close();
+
             ps.close();
+
             con.close();
-
-        } catch (ClassNotFoundException e) {
-
-            out.println("<tr>");
-
-            out.println("<td colspan='10' "
-                    + "style='color:red;text-align:center;'>");
-
-            out.println("MySQL JDBC Driver not found.");
-
-            out.println("</td>");
-
-            out.println("</tr>");
-
-            e.printStackTrace();
 
         } catch (SQLException e) {
 
             out.println("<tr>");
 
             out.println("<td colspan='10' "
-                    + "style='color:red;text-align:center;'>");
+                    + "style='color:red;"
+                    + "text-align:center;'>");
 
             out.println("Database Error: "
                     + escapeHtml(e.getMessage()));
@@ -609,6 +737,8 @@ public class CompanyServlet extends HttpServlet {
             out.println("</td>");
 
             out.println("</tr>");
+
+            // Print complete error in Railway/Eclipse logs
 
             e.printStackTrace();
         }
