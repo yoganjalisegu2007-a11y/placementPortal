@@ -1,10 +1,18 @@
 package placementPortal;
 
-import java.io.*;
-import java.sql.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/AdminDashboardServlet")
 public class AdminDashboardServlet extends HttpServlet {
@@ -22,9 +30,10 @@ public class AdminDashboardServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        if (session == null ||
-            session.getAttribute("isAdmin") == null ||
-            !Boolean.TRUE.equals(session.getAttribute("isAdmin"))) {
+        if (session == null
+                || session.getAttribute("isAdmin") == null
+                || !Boolean.TRUE.equals(
+                        session.getAttribute("isAdmin"))) {
 
             response.sendRedirect("AdminLoginServlet");
             return;
@@ -53,6 +62,7 @@ public class AdminDashboardServlet extends HttpServlet {
         int selectedStudents = 0;
         int shortlistedStudents = 0;
         int pendingApplications = 0;
+        int scheduledInterviews = 0;
 
         Connection con = null;
 
@@ -62,13 +72,15 @@ public class AdminDashboardServlet extends HttpServlet {
 
             con = DBConnection.getConnection();
 
-            /* TOTAL STUDENTS */
+            /* =====================================================
+               TOTAL STUDENTS
+               ===================================================== */
 
             String sqlStudents =
                     "SELECT COUNT(*) FROM students";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlStudents);
+                         con.prepareStatement(sqlStudents);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -76,13 +88,15 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
-            /* TOTAL COMPANIES */
+            /* =====================================================
+               TOTAL COMPANIES
+               ===================================================== */
 
             String sqlCompanies =
                     "SELECT COUNT(*) FROM companies";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlCompanies);
+                         con.prepareStatement(sqlCompanies);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -90,13 +104,15 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
-            /* TOTAL APPLICATIONS */
+            /* =====================================================
+               TOTAL APPLICATIONS
+               ===================================================== */
 
             String sqlApplications =
                     "SELECT COUNT(*) FROM applications";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlApplications);
+                         con.prepareStatement(sqlApplications);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -104,14 +120,16 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
-            /* SELECTED */
+            /* =====================================================
+               SELECTED STUDENTS
+               ===================================================== */
 
             String sqlSelected =
-                    "SELECT COUNT(*) FROM applications " +
-                    "WHERE status = 'SELECTED'";
+                    "SELECT COUNT(*) FROM applications "
+                    + "WHERE status = 'SELECTED'";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlSelected);
+                         con.prepareStatement(sqlSelected);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -119,14 +137,16 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
-            /* SHORTLISTED */
+            /* =====================================================
+               SHORTLISTED STUDENTS
+               ===================================================== */
 
             String sqlShortlisted =
-                    "SELECT COUNT(*) FROM applications " +
-                    "WHERE status = 'SHORTLISTED'";
+                    "SELECT COUNT(*) FROM applications "
+                    + "WHERE status = 'SHORTLISTED'";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlShortlisted);
+                         con.prepareStatement(sqlShortlisted);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -134,14 +154,16 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
-            /* PENDING / APPLIED */
+            /* =====================================================
+               PENDING APPLICATIONS
+               ===================================================== */
 
             String sqlPending =
-                    "SELECT COUNT(*) FROM applications " +
-                    "WHERE status = 'APPLIED'";
+                    "SELECT COUNT(*) FROM applications "
+                    + "WHERE status = 'APPLIED'";
 
             try (PreparedStatement ps =
-                    con.prepareStatement(sqlPending);
+                         con.prepareStatement(sqlPending);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
@@ -149,9 +171,27 @@ public class AdminDashboardServlet extends HttpServlet {
                 }
             }
 
+            /* =====================================================
+               SCHEDULED INTERVIEWS
+               ===================================================== */
+
+            String sqlInterviews =
+                    "SELECT COUNT(*) FROM interviews";
+
+            try (PreparedStatement ps =
+                         con.prepareStatement(sqlInterviews);
+                 ResultSet rs = ps.executeQuery()) {
+
+                if (rs.next()) {
+                    scheduledInterviews = rs.getInt(1);
+                }
+            }
+
         } catch (Exception e) {
 
-            System.out.println("ADMIN DASHBOARD DATABASE ERROR:");
+            System.out.println(
+                    "ADMIN DASHBOARD DATABASE ERROR:");
+
             e.printStackTrace();
 
             out.println("<!DOCTYPE html>");
@@ -160,10 +200,9 @@ public class AdminDashboardServlet extends HttpServlet {
             out.println("<title>Database Error</title>");
             out.println("</head>");
             out.println("<body>");
-
             out.println("<h2>Database Error</h2>");
-            out.println("<p>Unable to load dashboard information.</p>");
-
+            out.println(
+                    "<p>Unable to load dashboard information.</p>");
             out.println("</body>");
             out.println("</html>");
 
@@ -190,8 +229,8 @@ public class AdminDashboardServlet extends HttpServlet {
 
         out.println("<meta charset='UTF-8'>");
 
-        out.println("<meta name='viewport' " +
-                "content='width=device-width, initial-scale=1.0'>");
+        out.println("<meta name='viewport' "
+                + "content='width=device-width, initial-scale=1.0'>");
 
         out.println("<title>Admin Dashboard | Placement Portal</title>");
 
@@ -463,8 +502,11 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("<div class='sidebar'>");
 
         out.println("<div class='brand'>");
+
         out.println("<h2>PLACEMENT PORTAL</h2>");
+
         out.println("<p>ADMINISTRATION PANEL</p>");
+
         out.println("</div>");
 
         out.println("<ul>");
@@ -504,7 +546,8 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("<h1>Administrator Dashboard</h1>");
 
         out.println("<p>");
-        out.println("Manage students, companies and placement activities from one place.");
+        out.println("Manage students, companies and placement "
+                + "activities from one place.");
         out.println("</p>");
 
         out.println("</div>");
@@ -515,40 +558,67 @@ public class AdminDashboardServlet extends HttpServlet {
 
         out.println("<div class='stats'>");
 
+        /* TOTAL STUDENTS */
+
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Students</h3>");
         out.println("<div class='stat-number'>"
-                + totalStudents + "</div>");
+                + totalStudents
+                + "</div>");
         out.println("</div>");
+
+        /* TOTAL COMPANIES */
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Companies</h3>");
         out.println("<div class='stat-number'>"
-                + totalCompanies + "</div>");
+                + totalCompanies
+                + "</div>");
         out.println("</div>");
+
+        /* TOTAL APPLICATIONS */
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Applications</h3>");
         out.println("<div class='stat-number'>"
-                + totalApplications + "</div>");
+                + totalApplications
+                + "</div>");
         out.println("</div>");
+
+        /* PENDING */
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Applications Pending</h3>");
         out.println("<div class='stat-number'>"
-                + pendingApplications + "</div>");
+                + pendingApplications
+                + "</div>");
         out.println("</div>");
+
+        /* SHORTLISTED */
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Shortlisted</h3>");
         out.println("<div class='stat-number'>"
-                + shortlistedStudents + "</div>");
+                + shortlistedStudents
+                + "</div>");
         out.println("</div>");
+
+        /* SELECTED */
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Selected</h3>");
         out.println("<div class='stat-number'>"
-                + selectedStudents + "</div>");
+                + selectedStudents
+                + "</div>");
+        out.println("</div>");
+
+        /* SCHEDULED INTERVIEWS */
+
+        out.println("<div class='stat-card'>");
+        out.println("<h3>Scheduled Interviews</h3>");
+        out.println("<div class='stat-number'>"
+                + scheduledInterviews
+                + "</div>");
         out.println("</div>");
 
         out.println("</div>");
@@ -561,32 +631,60 @@ public class AdminDashboardServlet extends HttpServlet {
 
         out.println("<div class='actions'>");
 
-        out.println("<a class='action-card' href='StudentServlet'>");
+        /* STUDENTS */
+
+        out.println("<a class='action-card' "
+                + "href='StudentServlet'>");
+
         out.println("<h3>Manage Students</h3>");
+
         out.println("<p>");
-        out.println("View registered students and their placement information.");
+        out.println("View registered students and their "
+                + "placement information.");
         out.println("</p>");
+
         out.println("</a>");
 
-        out.println("<a class='action-card' href='CompanyServlet'>");
+        /* COMPANIES */
+
+        out.println("<a class='action-card' "
+                + "href='CompanyServlet'>");
+
         out.println("<h3>Manage Companies</h3>");
+
         out.println("<p>");
-        out.println("Add and manage companies participating in campus recruitment.");
+        out.println("Add and manage companies participating "
+                + "in campus recruitment.");
         out.println("</p>");
+
         out.println("</a>");
 
-        out.println("<a class='action-card' href='AdminApplicationsServlet'>");
+        /* APPLICATIONS */
+
+        out.println("<a class='action-card' "
+                + "href='AdminApplicationsServlet'>");
+
         out.println("<h3>Manage Applications</h3>");
+
         out.println("<p>");
-        out.println("Review student applications and update their placement status.");
+        out.println("Review student applications and update "
+                + "their placement status.");
         out.println("</p>");
+
         out.println("</a>");
 
-        out.println("<a class='action-card' href='AdminInterviewServlet'>");
+        /* INTERVIEWS */
+
+        out.println("<a class='action-card' "
+                + "href='AdminInterviewServlet'>");
+
         out.println("<h3>Manage Interviews</h3>");
+
         out.println("<p>");
-        out.println("Schedule and manage interviews for shortlisted students.");
+        out.println("Schedule and manage interviews for "
+                + "shortlisted students.");
         out.println("</p>");
+
         out.println("</a>");
 
         out.println("</div>");
@@ -614,8 +712,11 @@ public class AdminDashboardServlet extends HttpServlet {
 
         out.println("<br>");
 
-        out.println("<a class='logout' href='AdminLogoutServlet'>");
+        out.println("<a class='logout' "
+                + "href='AdminLogoutServlet'>");
+
         out.println("Logout");
+
         out.println("</a>");
 
         out.println("</div>");
