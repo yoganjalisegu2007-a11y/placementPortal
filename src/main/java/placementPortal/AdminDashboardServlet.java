@@ -1,4 +1,3 @@
-
 package placementPortal;
 
 import java.io.*;
@@ -10,7 +9,11 @@ import javax.servlet.annotation.WebServlet;
 @WebServlet("/AdminDashboardServlet")
 public class AdminDashboardServlet extends HttpServlet {
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    protected void doGet(HttpServletRequest request,
+                          HttpServletResponse response)
             throws ServletException, IOException {
 
         /* =========================================================
@@ -27,21 +30,22 @@ public class AdminDashboardServlet extends HttpServlet {
             return;
         }
 
+        /* =========================================================
+           CACHE CONTROL
+           ========================================================= */
+
+        response.setHeader("Cache-Control",
+                "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+
         response.setContentType("text/html; charset=UTF-8");
 
         PrintWriter out = response.getWriter();
 
         /* =========================================================
-           DATABASE
+           DASHBOARD COUNTS
            ========================================================= */
-
-        String url =
-                "jdbc:mysql://localhost:3306/placement_portal";
-
-        String user = "root";
-
-        String password =
-                "Yoganjali@123";
 
         int totalStudents = 0;
         int totalCompanies = 0;
@@ -50,109 +54,130 @@ public class AdminDashboardServlet extends HttpServlet {
         int shortlistedStudents = 0;
         int pendingApplications = 0;
 
+        Connection con = null;
+
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            /* USE COMMON DATABASE CONNECTION */
 
-            try (Connection con =
-                    DriverManager.getConnection(
-                            url,
-                            user,
-                            password)) {
+            con = DBConnection.getConnection();
 
-                /* TOTAL STUDENTS */
+            /* TOTAL STUDENTS */
 
-                String sqlStudents =
-                        "SELECT COUNT(*) FROM students";
+            String sqlStudents =
+                    "SELECT COUNT(*) FROM students";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlStudents);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlStudents);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        totalStudents = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    totalStudents = rs.getInt(1);
                 }
+            }
 
-                /* TOTAL COMPANIES */
+            /* TOTAL COMPANIES */
 
-                String sqlCompanies =
-                        "SELECT COUNT(*) FROM companies";
+            String sqlCompanies =
+                    "SELECT COUNT(*) FROM companies";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlCompanies);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlCompanies);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        totalCompanies = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    totalCompanies = rs.getInt(1);
                 }
+            }
 
-                /* TOTAL APPLICATIONS */
+            /* TOTAL APPLICATIONS */
 
-                String sqlApplications =
-                        "SELECT COUNT(*) FROM applications";
+            String sqlApplications =
+                    "SELECT COUNT(*) FROM applications";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlApplications);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlApplications);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        totalApplications = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    totalApplications = rs.getInt(1);
                 }
+            }
 
-                /* SELECTED */
+            /* SELECTED */
 
-                String sqlSelected =
-                        "SELECT COUNT(*) FROM applications " +
-                        "WHERE status = 'SELECTED'";
+            String sqlSelected =
+                    "SELECT COUNT(*) FROM applications " +
+                    "WHERE status = 'SELECTED'";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlSelected);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlSelected);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        selectedStudents = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    selectedStudents = rs.getInt(1);
                 }
+            }
 
-                /* SHORTLISTED */
+            /* SHORTLISTED */
 
-                String sqlShortlisted =
-                        "SELECT COUNT(*) FROM applications " +
-                        "WHERE status = 'SHORTLISTED'";
+            String sqlShortlisted =
+                    "SELECT COUNT(*) FROM applications " +
+                    "WHERE status = 'SHORTLISTED'";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlShortlisted);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlShortlisted);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        shortlistedStudents = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    shortlistedStudents = rs.getInt(1);
                 }
+            }
 
-                /* APPLIED / PENDING */
+            /* PENDING / APPLIED */
 
-                String sqlPending =
-                        "SELECT COUNT(*) FROM applications " +
-                        "WHERE status = 'APPLIED'";
+            String sqlPending =
+                    "SELECT COUNT(*) FROM applications " +
+                    "WHERE status = 'APPLIED'";
 
-                try (PreparedStatement ps =
-                        con.prepareStatement(sqlPending);
-                     ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps =
+                    con.prepareStatement(sqlPending);
+                 ResultSet rs = ps.executeQuery()) {
 
-                    if (rs.next()) {
-                        pendingApplications = rs.getInt(1);
-                    }
+                if (rs.next()) {
+                    pendingApplications = rs.getInt(1);
                 }
             }
 
         } catch (Exception e) {
 
-            out.println("<h3>Database Error</h3>");
+            System.out.println("ADMIN DASHBOARD DATABASE ERROR:");
+            e.printStackTrace();
+
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Database Error</title>");
+            out.println("</head>");
+            out.println("<body>");
+
+            out.println("<h2>Database Error</h2>");
             out.println("<p>Unable to load dashboard information.</p>");
+
+            out.println("</body>");
+            out.println("</html>");
+
             return;
+
+        } finally {
+
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         /* =========================================================
@@ -474,8 +499,6 @@ public class AdminDashboardServlet extends HttpServlet {
 
         out.println("<div class='main'>");
 
-        /* HEADER */
-
         out.println("<div class='topbar'>");
 
         out.println("<h1>Administrator Dashboard</h1>");
@@ -495,49 +518,43 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Students</h3>");
         out.println("<div class='stat-number'>"
-                + totalStudents
-                + "</div>");
+                + totalStudents + "</div>");
         out.println("</div>");
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Companies</h3>");
         out.println("<div class='stat-number'>"
-                + totalCompanies
-                + "</div>");
+                + totalCompanies + "</div>");
         out.println("</div>");
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Total Applications</h3>");
         out.println("<div class='stat-number'>"
-                + totalApplications
-                + "</div>");
+                + totalApplications + "</div>");
         out.println("</div>");
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Applications Pending</h3>");
         out.println("<div class='stat-number'>"
-                + pendingApplications
-                + "</div>");
+                + pendingApplications + "</div>");
         out.println("</div>");
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Shortlisted</h3>");
         out.println("<div class='stat-number'>"
-                + shortlistedStudents
-                + "</div>");
+                + shortlistedStudents + "</div>");
         out.println("</div>");
 
         out.println("<div class='stat-card'>");
         out.println("<h3>Selected</h3>");
         out.println("<div class='stat-number'>"
-                + selectedStudents
-                + "</div>");
+                + selectedStudents + "</div>");
         out.println("</div>");
 
         out.println("</div>");
 
         /* =========================================================
-           QUICK ACTIONS
+           MANAGEMENT
            ========================================================= */
 
         out.println("<div class='section-title'>Management</div>");
@@ -545,43 +562,31 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("<div class='actions'>");
 
         out.println("<a class='action-card' href='StudentServlet'>");
-
         out.println("<h3>Manage Students</h3>");
-
         out.println("<p>");
         out.println("View registered students and their placement information.");
         out.println("</p>");
-
         out.println("</a>");
 
         out.println("<a class='action-card' href='CompanyServlet'>");
-
         out.println("<h3>Manage Companies</h3>");
-
         out.println("<p>");
         out.println("Add and manage companies participating in campus recruitment.");
         out.println("</p>");
-
         out.println("</a>");
 
         out.println("<a class='action-card' href='AdminApplicationsServlet'>");
-
         out.println("<h3>Manage Applications</h3>");
-
         out.println("<p>");
         out.println("Review student applications and update their placement status.");
         out.println("</p>");
-
         out.println("</a>");
 
         out.println("<a class='action-card' href='AdminInterviewServlet'>");
-
         out.println("<h3>Manage Interviews</h3>");
-
         out.println("<p>");
         out.println("Schedule and manage interviews for shortlisted students.");
         out.println("</p>");
-
         out.println("</a>");
 
         out.println("</div>");
@@ -610,9 +615,7 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("<br>");
 
         out.println("<a class='logout' href='AdminLogoutServlet'>");
-
         out.println("Logout");
-
         out.println("</a>");
 
         out.println("</div>");
@@ -620,7 +623,6 @@ public class AdminDashboardServlet extends HttpServlet {
         out.println("</div>");
 
         out.println("</body>");
-
         out.println("</html>");
     }
 }
