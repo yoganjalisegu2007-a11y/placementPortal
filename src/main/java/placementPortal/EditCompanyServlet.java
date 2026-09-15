@@ -4,7 +4,6 @@ package placementPortal;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,15 +19,6 @@ import javax.servlet.http.HttpSession;
 public class EditCompanyServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
 
     // ==========================================
     // SHOW EDIT FORM
@@ -57,7 +47,6 @@ public class EditCompanyServlet extends HttpServlet {
             return;
         }
 
-
         // ==========================================
         // GET COMPANY ID
         // ==========================================
@@ -82,22 +71,17 @@ public class EditCompanyServlet extends HttpServlet {
             return;
         }
 
-
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // ==========================================
+            // CONNECT USING DBConnection
+            // ==========================================
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
-
+            con = DBConnection.getConnection();
 
             // ==========================================
             // GET COMPANY
@@ -112,13 +96,11 @@ public class EditCompanyServlet extends HttpServlet {
 
             rs = ps.executeQuery();
 
-
             if (!rs.next()) {
 
                 out.println("<h2>Company not found.</h2>");
                 return;
             }
-
 
             String companyId = rs.getString("company_id");
             String name = rs.getString("name");
@@ -130,7 +112,6 @@ public class EditCompanyServlet extends HttpServlet {
             String requiredSkills = rs.getString("required_skills");
             String branches = rs.getString("branches");
             String branchType = rs.getString("branch_type");
-
 
             // ==========================================
             // HTML
@@ -146,7 +127,6 @@ public class EditCompanyServlet extends HttpServlet {
                     + "content='width=device-width, initial-scale=1.0'>");
 
             out.println("<title>Edit Company</title>");
-
 
             out.println("<style>");
 
@@ -255,7 +235,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("<h1>Edit Company</h1>");
 
-
             // ==========================================
             // EDIT FORM
             // ==========================================
@@ -266,9 +245,7 @@ public class EditCompanyServlet extends HttpServlet {
             out.println("<input type='hidden' name='id' value='"
                     + id + "'>");
 
-
             out.println("<div class='form-grid'>");
-
 
             // Company ID
             out.println("<div class='group'>");
@@ -282,7 +259,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Company Name
             out.println("<div class='group'>");
 
@@ -294,7 +270,6 @@ public class EditCompanyServlet extends HttpServlet {
                     + "' required>");
 
             out.println("</div>");
-
 
             // Email
             out.println("<div class='group'>");
@@ -308,7 +283,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Contact
             out.println("<div class='group'>");
 
@@ -321,7 +295,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // HR
             out.println("<div class='group'>");
 
@@ -333,7 +306,6 @@ public class EditCompanyServlet extends HttpServlet {
                     + "' required>");
 
             out.println("</div>");
-
 
             // Cutoff
             out.println("<div class='group'>");
@@ -350,7 +322,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Branches
             out.println("<div class='group'>");
 
@@ -362,7 +333,6 @@ public class EditCompanyServlet extends HttpServlet {
                     + "' required>");
 
             out.println("</div>");
-
 
             // Branch Type
             out.println("<div class='group'>");
@@ -395,7 +365,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Skills
             out.println("<div class='group full'>");
 
@@ -408,7 +377,6 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Address
             out.println("<div class='group full'>");
 
@@ -420,9 +388,7 @@ public class EditCompanyServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             out.println("</div>");
-
 
             // Buttons
             out.println("<div class='buttons'>");
@@ -440,13 +406,6 @@ public class EditCompanyServlet extends HttpServlet {
             out.println("</body>");
 
             out.println("</html>");
-
-
-        } catch (ClassNotFoundException e) {
-
-            e.printStackTrace();
-
-            out.println("<h2>MySQL JDBC Driver not found.</h2>");
 
         } catch (SQLException e) {
 
@@ -483,7 +442,6 @@ public class EditCompanyServlet extends HttpServlet {
         }
     }
 
-
     // ==========================================
     // UPDATE COMPANY
     // ==========================================
@@ -509,7 +467,6 @@ public class EditCompanyServlet extends HttpServlet {
             return;
         }
 
-
         // ==========================================
         // GET FORM DATA
         // ==========================================
@@ -527,11 +484,8 @@ public class EditCompanyServlet extends HttpServlet {
         String requiredSkills = request.getParameter("required_skills");
         String address = request.getParameter("address");
 
-
         int id;
-
         double cutoff;
-
 
         try {
 
@@ -543,7 +497,6 @@ public class EditCompanyServlet extends HttpServlet {
             return;
         }
 
-
         try {
 
             cutoff = Double.parseDouble(cutoffText);
@@ -553,7 +506,6 @@ public class EditCompanyServlet extends HttpServlet {
             response.sendRedirect("CompanyServlet");
             return;
         }
-
 
         // ==========================================
         // VALIDATION
@@ -573,28 +525,22 @@ public class EditCompanyServlet extends HttpServlet {
             return;
         }
 
-
         if (cutoff < 0 || cutoff > 10) {
 
             response.sendRedirect("CompanyServlet");
             return;
         }
 
-
         Connection con = null;
         PreparedStatement ps = null;
 
-
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // ==========================================
+            // CONNECT USING DBConnection
+            // ==========================================
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
-
+            con = DBConnection.getConnection();
 
             // ==========================================
             // UPDATE QUERY
@@ -614,7 +560,6 @@ public class EditCompanyServlet extends HttpServlet {
                     + "branch_type = ? "
                     + "WHERE id = ?";
 
-
             ps = con.prepareStatement(sql);
 
             ps.setString(1, companyId.trim());
@@ -629,9 +574,7 @@ public class EditCompanyServlet extends HttpServlet {
             ps.setString(10, branchType.trim());
             ps.setInt(11, id);
 
-
             int rows = ps.executeUpdate();
-
 
             if (rows > 0) {
 
@@ -642,18 +585,19 @@ public class EditCompanyServlet extends HttpServlet {
                 response.sendRedirect("CompanyServlet");
             }
 
-
-        } catch (ClassNotFoundException e) {
-
-            e.printStackTrace();
-
-            response.sendRedirect("CompanyServlet");
-
         } catch (SQLException e) {
 
             e.printStackTrace();
 
-            response.sendRedirect("CompanyServlet");
+            response.setContentType("text/html;charset=UTF-8");
+
+            PrintWriter out = response.getWriter();
+
+            out.println("<h2>Database Error</h2>");
+            out.println("<p>"
+                    + escapeHtml(e.getMessage())
+                    + "</p>");
+            out.println("<a href='CompanyServlet'>Back to Companies</a>");
 
         } finally {
 
@@ -675,7 +619,6 @@ public class EditCompanyServlet extends HttpServlet {
         }
     }
 
-
     // ==========================================
     // SELECT OPTION
     // ==========================================
@@ -689,7 +632,6 @@ public class EditCompanyServlet extends HttpServlet {
 
         return "";
     }
-
 
     // ==========================================
     // HTML ESCAPE
