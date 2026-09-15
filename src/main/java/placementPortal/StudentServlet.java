@@ -1,8 +1,9 @@
+
 package placementPortal;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -17,14 +18,6 @@ import javax.servlet.http.HttpSession;
 public class StudentServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -79,8 +72,6 @@ public class StudentServlet extends HttpServlet {
         out.println("color: #333;");
         out.println("}");
 
-        /* SIDEBAR */
-
         out.println(".sidebar {");
         out.println("position: fixed;");
         out.println("left: 0;");
@@ -115,8 +106,6 @@ public class StudentServlet extends HttpServlet {
         out.println("background: #dc2626;");
         out.println("}");
 
-        /* MAIN */
-
         out.println(".main {");
         out.println("margin-left: 240px;");
         out.println("padding: 30px;");
@@ -134,8 +123,6 @@ public class StudentServlet extends HttpServlet {
         out.println(".header p {");
         out.println("color: #666;");
         out.println("}");
-
-        /* STATISTICS */
 
         out.println(".stats {");
         out.println("display: grid;");
@@ -161,8 +148,6 @@ public class StudentServlet extends HttpServlet {
         out.println("margin: 8px 0 0;");
         out.println("color: #666;");
         out.println("}");
-
-        /* TABLE */
 
         out.println(".table-container {");
         out.println("background: white;");
@@ -199,8 +184,6 @@ public class StudentServlet extends HttpServlet {
         out.println("background: #f8fafc;");
         out.println("}");
 
-        /* STATUS */
-
         out.println(".status {");
         out.println("padding: 6px 10px;");
         out.println("border-radius: 20px;");
@@ -225,8 +208,6 @@ public class StudentServlet extends HttpServlet {
         out.println("padding: 40px;");
         out.println("color: #777;");
         out.println("}");
-
-        /* RESPONSIVE */
 
         out.println("@media(max-width: 900px) {");
 
@@ -300,17 +281,11 @@ public class StudentServlet extends HttpServlet {
 
         try {
 
-            // Load MySQL Driver
+            // ==============================
+            // CONNECT USING DBConnection
+            // ==============================
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            // Connect Database
-
-            Connection con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
+            Connection con = DBConnection.getConnection();
 
             // ==============================
             // TOTAL STUDENTS
@@ -324,9 +299,7 @@ public class StudentServlet extends HttpServlet {
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
-
                     totalStudents = rs.getInt(1);
-
                 }
             }
 
@@ -344,9 +317,7 @@ public class StudentServlet extends HttpServlet {
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
-
                     placedStudents = rs.getInt(1);
-
                 }
             }
 
@@ -363,9 +334,7 @@ public class StudentServlet extends HttpServlet {
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
-
                     fresherStudents = rs.getInt(1);
-
                 }
             }
 
@@ -376,33 +345,18 @@ public class StudentServlet extends HttpServlet {
             out.println("<div class='stats'>");
 
             out.println("<div class='stat-card'>");
-
-            out.println("<h3>" +
-                        totalStudents +
-                        "</h3>");
-
+            out.println("<h3>" + totalStudents + "</h3>");
             out.println("<p>Total Students</p>");
-
             out.println("</div>");
 
             out.println("<div class='stat-card'>");
-
-            out.println("<h3>" +
-                        placedStudents +
-                        "</h3>");
-
+            out.println("<h3>" + placedStudents + "</h3>");
             out.println("<p>Placed Students</p>");
-
             out.println("</div>");
 
             out.println("<div class='stat-card'>");
-
-            out.println("<h3>" +
-                        fresherStudents +
-                        "</h3>");
-
+            out.println("<h3>" + fresherStudents + "</h3>");
             out.println("<p>Freshers</p>");
-
             out.println("</div>");
 
             out.println("</div>");
@@ -446,34 +400,17 @@ public class StudentServlet extends HttpServlet {
 
                 out.println("</tr>");
 
-                // ==============================
-                // DISPLAY STUDENTS
-                // ==============================
-
                 while (rs.next()) {
 
                     hasStudents = true;
 
-                    String name =
-                            rs.getString("name");
-
-                    String email =
-                            rs.getString("email");
-
-                    String prn =
-                            rs.getString("prn");
-
-                    String branch =
-                            rs.getString("branch");
-
-                    String year =
-                            rs.getString("year");
-
-                    String cgpa =
-                            rs.getString("cgpa");
-
-                    String phone =
-                            rs.getString("phone_no");
+                    String name = rs.getString("name");
+                    String email = rs.getString("email");
+                    String prn = rs.getString("prn");
+                    String branch = rs.getString("branch");
+                    String year = rs.getString("year");
+                    String cgpa = rs.getString("cgpa");
+                    String phone = rs.getString("phone_no");
 
                     String placementStatus =
                             rs.getString("placement_status");
@@ -483,8 +420,6 @@ public class StudentServlet extends HttpServlet {
 
                     String placed =
                             rs.getString("placed");
-
-                    // Handle NULL values
 
                     if (placementStatus == null ||
                         placementStatus.trim().isEmpty()) {
@@ -503,10 +438,6 @@ public class StudentServlet extends HttpServlet {
 
                         placed = "No";
                     }
-
-                    // ==============================
-                    // TABLE ROW
-                    // ==============================
 
                     out.println("<tr>");
 
@@ -558,8 +489,6 @@ public class StudentServlet extends HttpServlet {
                             escapeHtml(previousCompany) +
                             "</td>");
 
-                    // Placed status
-
                     if ("Yes".equalsIgnoreCase(placed)) {
 
                         out.println("<td>");
@@ -586,15 +515,13 @@ public class StudentServlet extends HttpServlet {
 
                 out.println("</table>");
 
-                // ==============================
-                // NO STUDENTS
-                // ==============================
-
                 if (!hasStudents) {
 
                     out.println("<div class='empty'>");
 
-                    out.println("<h3>No students registered yet</h3>");
+                    out.println(
+                            "<h3>No students registered yet</h3>"
+                    );
 
                     out.println(
                             "<p>Student registrations will appear here.</p>"
@@ -636,7 +563,6 @@ public class StudentServlet extends HttpServlet {
     private String escapeHtml(String value) {
 
         if (value == null) {
-
             return "";
         }
 
