@@ -9,11 +9,19 @@ public class DBConnection {
     // Local MySQL database
     private static final String LOCAL_URL =
             "jdbc:mysql://localhost:3306/placement_portal"
-            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+            + "?useSSL=false"
+            + "&allowPublicKeyRetrieval=true"
+            + "&serverTimezone=UTC"
+            + "&connectTimeout=10000"
+            + "&socketTimeout=10000";
 
     private static final String LOCAL_USER = "root";
 
     public static Connection getConnection() throws SQLException {
+
+        // Make Java prefer IPv4.
+        // Railway provides both IPv4 and IPv6 addresses.
+        System.setProperty("java.net.preferIPv4Stack", "true");
 
         // Load MySQL JDBC Driver
         try {
@@ -25,7 +33,7 @@ public class DBConnection {
             );
         }
 
-        // Read Railway database variables
+        // Read Railway MySQL environment variables
         String host = System.getenv("MYSQLHOST");
         String port = System.getenv("MYSQLPORT");
         String database = System.getenv("MYSQLDATABASE");
@@ -45,7 +53,9 @@ public class DBConnection {
         );
         System.out.println("======================");
 
-        // Use Railway database when deployed online
+        /*
+         * Railway connection
+         */
         if (host != null && !host.isEmpty()
                 && port != null && !port.isEmpty()
                 && database != null && !database.isEmpty()
@@ -61,8 +71,8 @@ public class DBConnection {
                     + "&socketTimeout=10000";
 
             System.out.println("Using Railway MySQL database.");
-            System.out.println("Railway URL host = " + host);
-            System.out.println("Railway URL port = " + port);
+            System.out.println("Railway host = " + host);
+            System.out.println("Railway port = " + port);
             System.out.println("Railway database = " + database);
 
             return DriverManager.getConnection(
@@ -72,7 +82,9 @@ public class DBConnection {
             );
         }
 
-        // Use local database when running in Eclipse/Tomcat
+        /*
+         * Local Eclipse/Tomcat connection
+         */
         System.out.println("Railway variables not available.");
         System.out.println("Using local MySQL database.");
 
