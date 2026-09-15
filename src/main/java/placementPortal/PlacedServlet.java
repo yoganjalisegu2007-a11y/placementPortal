@@ -4,7 +4,6 @@ package placementPortal;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -20,18 +19,20 @@ public class PlacedServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Prevent browser cache
+        response.setHeader(
+                "Cache-Control",
+                "no-cache, no-store, must-revalidate"
+        );
+
+        response.setHeader("Pragma", "no-cache");
+
+        response.setDateHeader("Expires", 0);
 
         response.setContentType("text/html; charset=UTF-8");
 
@@ -50,8 +51,17 @@ public class PlacedServlet extends HttpServlet {
             return;
         }
 
-        Integer studentId =
-                (Integer) session.getAttribute("studentId");
+        Integer studentId;
+
+        try {
+
+            studentId = (Integer) session.getAttribute("studentId");
+
+        } catch (Exception e) {
+
+            response.sendRedirect("LoginServlet");
+            return;
+        }
 
         // ==================================================
         // HTML START
@@ -395,13 +405,14 @@ public class PlacedServlet extends HttpServlet {
         out.println("}");
 
         out.println("</style>");
+
         out.println("</head>");
 
         out.println("<body>");
 
-        /* ==================================================
-           SIDEBAR
-           ================================================== */
+        // ==================================================
+        // SIDEBAR
+        // ==================================================
 
         out.println("<div class='sidebar'>");
 
@@ -444,15 +455,15 @@ public class PlacedServlet extends HttpServlet {
 
         out.println("</div>");
 
-        /* ==================================================
-           MAIN
-           ================================================== */
+        // ==================================================
+        // MAIN
+        // ==================================================
 
         out.println("<div class='main'>");
 
-        /* ==================================================
-           TOP BAR
-           ================================================== */
+        // ==================================================
+        // TOP BAR
+        // ==================================================
 
         out.println("<div class='topbar'>");
 
@@ -462,9 +473,9 @@ public class PlacedServlet extends HttpServlet {
 
         out.println("</div>");
 
-        /* ==================================================
-           CONTENT
-           ================================================== */
+        // ==================================================
+        // CONTENT
+        // ==================================================
 
         out.println("<div class='content'>");
 
@@ -488,13 +499,11 @@ public class PlacedServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // Use the common database connection.
+            // Railway variables are used automatically
+            // when the application is deployed.
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
+            con = DBConnection.getConnection();
 
             /*
              * SELECTED is the final placement status
@@ -524,13 +533,17 @@ public class PlacedServlet extends HttpServlet {
 
             boolean found = false;
 
+            // ==================================================
+            // DISPLAY PLACED COMPANIES
+            // ==================================================
+
             while (rs.next()) {
 
                 found = true;
 
                 out.println("<div class='placement-card'>");
 
-                /* ---------- HEADER ---------- */
+                // ---------- HEADER ----------
 
                 out.println("<div class='placement-header'>");
 
@@ -553,7 +566,7 @@ public class PlacedServlet extends HttpServlet {
 
                 out.println("</div>");
 
-                /* ---------- DETAILS ---------- */
+                // ---------- DETAILS ----------
 
                 out.println("<div class='details-grid'>");
 
@@ -719,9 +732,11 @@ public class PlacedServlet extends HttpServlet {
         }
 
         out.println("</div>");
+
         out.println("</div>");
 
         out.println("</body>");
+
         out.println("</html>");
     }
 
