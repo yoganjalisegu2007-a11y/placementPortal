@@ -1,4 +1,3 @@
-
 package placementPortal;
 
 import java.io.IOException;
@@ -34,10 +33,10 @@ public class AdminInterviewServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        if (session == null ||
-            session.getAttribute("isAdmin") == null ||
-            !Boolean.TRUE.equals(
-                    session.getAttribute("isAdmin"))) {
+        if (session == null
+                || session.getAttribute("isAdmin") == null
+                || !Boolean.TRUE.equals(
+                        session.getAttribute("isAdmin"))) {
 
             response.sendRedirect("AdminLoginServlet");
             return;
@@ -52,7 +51,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "no-cache, no-store, must-revalidate");
 
         response.setHeader("Pragma", "no-cache");
-
         response.setDateHeader("Expires", 0);
 
         response.setContentType("text/html;charset=UTF-8");
@@ -60,6 +58,12 @@ public class AdminInterviewServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         Connection con = null;
+
+        PreparedStatement applicationPs = null;
+        ResultSet applicationRs = null;
+
+        PreparedStatement interviewPs = null;
+        ResultSet interviewRs = null;
 
         try {
 
@@ -74,26 +78,23 @@ public class AdminInterviewServlet extends HttpServlet {
             // =================================================
 
             String applicationSql =
-                    "SELECT a.id AS application_id, " +
-                    "s.name AS student_name, " +
-                    "s.email AS student_email, " +
-                    "s.branch, " +
-                    "c.name AS company_name, " +
-                    "a.status " +
-                    "FROM applications a " +
-                    "JOIN students s " +
-                    "ON a.student_id = s.id " +
-                    "JOIN companies c " +
-                    "ON a.company_id = c.id " +
-                    "WHERE a.status IN " +
-                    "('SHORTLISTED', 'INTERVIEW') " +
-                    "ORDER BY a.applied_date DESC";
+                    "SELECT a.id AS application_id, "
+                    + "s.name AS student_name, "
+                    + "s.email AS student_email, "
+                    + "s.branch, "
+                    + "c.name AS company_name, "
+                    + "a.status "
+                    + "FROM applications a "
+                    + "JOIN students s "
+                    + "ON a.student_id = s.id "
+                    + "JOIN companies c "
+                    + "ON a.company_id = c.id "
+                    + "WHERE a.status IN "
+                    + "('SHORTLISTED', 'INTERVIEW') "
+                    + "ORDER BY a.applied_date DESC";
 
-            PreparedStatement applicationPs =
-                    con.prepareStatement(applicationSql);
-
-            ResultSet applicationRs =
-                    applicationPs.executeQuery();
+            applicationPs = con.prepareStatement(applicationSql);
+            applicationRs = applicationPs.executeQuery();
 
             // =================================================
             // START HTML
@@ -106,12 +107,12 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<meta charset='UTF-8'>");
 
             out.println(
-                "<meta name='viewport' " +
-                "content='width=device-width, initial-scale=1.0'>"
+                    "<meta name='viewport' "
+                    + "content='width=device-width, initial-scale=1.0'>"
             );
 
             out.println(
-                "<title>Interview Management</title>"
+                    "<title>Interview Management</title>"
             );
 
             // =================================================
@@ -121,300 +122,324 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<style>");
 
             out.println(
-                "* { " +
-                "box-sizing: border-box; " +
-                "margin: 0; " +
-                "padding: 0; " +
-                "font-family: Arial, sans-serif; " +
-                "}"
+                    "* { "
+                    + "box-sizing: border-box; "
+                    + "margin: 0; "
+                    + "padding: 0; "
+                    + "font-family: Arial, sans-serif; "
+                    + "}"
             );
 
             out.println(
-                "body { " +
-                "background: #f4f7fb; " +
-                "color: #222; " +
-                "}"
+                    "body { "
+                    + "background: #f4f7fb; "
+                    + "color: #222; "
+                    + "}"
             );
 
             // Sidebar
 
             out.println(
-                ".sidebar { " +
-                "position: fixed; " +
-                "left: 0; " +
-                "top: 0; " +
-                "width: 250px; " +
-                "height: 100vh; " +
-                "background: #172554; " +
-                "color: white; " +
-                "padding: 25px 15px; " +
-                "}"
+                    ".sidebar { "
+                    + "position: fixed; "
+                    + "left: 0; "
+                    + "top: 0; "
+                    + "width: 250px; "
+                    + "height: 100vh; "
+                    + "background: #172554; "
+                    + "color: white; "
+                    + "padding: 25px 15px; "
+                    + "}"
             );
 
             out.println(
-                ".logo { " +
-                "font-size: 24px; " +
-                "font-weight: bold; " +
-                "text-align: center; " +
-                "margin-bottom: 35px; " +
-                "}"
+                    ".logo { "
+                    + "font-size: 24px; "
+                    + "font-weight: bold; "
+                    + "text-align: center; "
+                    + "margin-bottom: 35px; "
+                    + "}"
             );
 
             out.println(
-                ".logo span { " +
-                "color: #60a5fa; " +
-                "}"
+                    ".logo span { "
+                    + "color: #60a5fa; "
+                    + "}"
             );
 
             out.println(
-                ".menu a { " +
-                "display: block; " +
-                "color: #dbeafe; " +
-                "text-decoration: none; " +
-                "padding: 14px 18px; " +
-                "margin: 7px 0; " +
-                "border-radius: 8px; " +
-                "font-size: 15px; " +
-                "}"
+                    ".menu a { "
+                    + "display: block; "
+                    + "color: #dbeafe; "
+                    + "text-decoration: none; "
+                    + "padding: 14px 18px; "
+                    + "margin: 7px 0; "
+                    + "border-radius: 8px; "
+                    + "font-size: 15px; "
+                    + "}"
             );
 
             out.println(
-                ".menu a:hover { " +
-                "background: #1e3a8a; " +
-                "}"
+                    ".menu a:hover { "
+                    + "background: #1e3a8a; "
+                    + "}"
             );
 
             out.println(
-                ".menu .active { " +
-                "background: #2563eb; " +
-                "color: white; " +
-                "}"
+                    ".menu .active { "
+                    + "background: #2563eb; "
+                    + "color: white; "
+                    + "}"
             );
 
             // Main
 
             out.println(
-                ".main { " +
-                "margin-left: 250px; " +
-                "padding: 30px; " +
-                "}"
+                    ".main { "
+                    + "margin-left: 250px; "
+                    + "padding: 30px; "
+                    + "}"
             );
 
             out.println(
-                ".topbar { " +
-                "display: flex; " +
-                "justify-content: space-between; " +
-                "align-items: center; " +
-                "margin-bottom: 25px; " +
-                "}"
+                    ".topbar { "
+                    + "display: flex; "
+                    + "justify-content: space-between; "
+                    + "align-items: center; "
+                    + "margin-bottom: 25px; "
+                    + "}"
             );
 
             out.println(
-                ".topbar h1 { " +
-                "font-size: 28px; " +
-                "color: #172554; " +
-                "}"
+                    ".topbar h1 { "
+                    + "font-size: 28px; "
+                    + "color: #172554; "
+                    + "}"
             );
 
             out.println(
-                ".admin-name { " +
-                "background: white; " +
-                "padding: 10px 16px; " +
-                "border-radius: 8px; " +
-                "box-shadow: 0 2px 8px rgba(0,0,0,0.08); " +
-                "}"
+                    ".admin-name { "
+                    + "background: white; "
+                    + "padding: 10px 16px; "
+                    + "border-radius: 8px; "
+                    + "box-shadow: 0 2px 8px rgba(0,0,0,0.08); "
+                    + "}"
             );
 
             // Card
 
             out.println(
-                ".card { " +
-                "background: white; " +
-                "padding: 25px; " +
-                "border-radius: 12px; " +
-                "box-shadow: 0 2px 10px rgba(0,0,0,0.07); " +
-                "margin-bottom: 25px; " +
-                "}"
+                    ".card { "
+                    + "background: white; "
+                    + "padding: 25px; "
+                    + "border-radius: 12px; "
+                    + "box-shadow: 0 2px 10px rgba(0,0,0,0.07); "
+                    + "margin-bottom: 25px; "
+                    + "}"
             );
 
             out.println(
-                ".card h2 { " +
-                "color: #172554; " +
-                "margin-bottom: 20px; " +
-                "}"
+                    ".card h2 { "
+                    + "color: #172554; "
+                    + "margin-bottom: 20px; "
+                    + "}"
             );
 
             // Form
 
             out.println(
-                ".form-grid { " +
-                "display: grid; " +
-                "grid-template-columns: repeat(2, 1fr); " +
-                "gap: 18px; " +
-                "}"
+                    ".form-grid { "
+                    + "display: grid; "
+                    + "grid-template-columns: repeat(2, 1fr); "
+                    + "gap: 18px; "
+                    + "}"
             );
 
             out.println(
-                ".form-group { " +
-                "display: flex; " +
-                "flex-direction: column; " +
-                "}"
+                    ".form-group { "
+                    + "display: flex; "
+                    + "flex-direction: column; "
+                    + "}"
             );
 
             out.println(
-                ".form-group label { " +
-                "font-weight: bold; " +
-                "margin-bottom: 7px; " +
-                "color: #334155; " +
-                "}"
+                    ".form-group label { "
+                    + "font-weight: bold; "
+                    + "margin-bottom: 7px; "
+                    + "color: #334155; "
+                    + "}"
             );
 
             out.println(
-                ".form-group input, " +
-                ".form-group select, " +
-                ".form-group textarea { " +
-                "padding: 11px; " +
-                "border: 1px solid #cbd5e1; " +
-                "border-radius: 7px; " +
-                "font-size: 14px; " +
-                "}"
+                    ".form-group input, "
+                    + ".form-group select, "
+                    + ".form-group textarea { "
+                    + "padding: 11px; "
+                    + "border: 1px solid #cbd5e1; "
+                    + "border-radius: 7px; "
+                    + "font-size: 14px; "
+                    + "}"
             );
 
             out.println(
-                ".form-group textarea { " +
-                "resize: vertical; " +
-                "min-height: 80px; " +
-                "}"
+                    ".form-group textarea { "
+                    + "resize: vertical; "
+                    + "min-height: 80px; "
+                    + "}"
             );
 
             out.println(
-                ".full { " +
-                "grid-column: 1 / -1; " +
-                "}"
+                    ".full { "
+                    + "grid-column: 1 / -1; "
+                    + "}"
             );
 
-            // Button
+            // Schedule button
 
             out.println(
-                ".btn { " +
-                "background: #2563eb; " +
-                "color: white; " +
-                "border: none; " +
-                "padding: 12px 22px; " +
-                "border-radius: 7px; " +
-                "cursor: pointer; " +
-                "font-size: 14px; " +
-                "font-weight: bold; " +
-                "}"
+                    ".btn { "
+                    + "background: #2563eb; "
+                    + "color: white; "
+                    + "border: none; "
+                    + "padding: 12px 22px; "
+                    + "border-radius: 7px; "
+                    + "cursor: pointer; "
+                    + "font-size: 14px; "
+                    + "font-weight: bold; "
+                    + "}"
             );
 
             out.println(
-                ".btn:hover { " +
-                "background: #1d4ed8; " +
-                "}"
+                    ".btn:hover { "
+                    + "background: #1d4ed8; "
+                    + "}"
             );
 
             // Table
 
             out.println(
-                ".table-container { " +
-                "overflow-x: auto; " +
-                "}"
+                    ".table-container { "
+                    + "overflow-x: auto; "
+                    + "}"
             );
 
             out.println(
-                "table { " +
-                "width: 100%; " +
-                "border-collapse: collapse; " +
-                "min-width: 1000px; " +
-                "}"
+                    "table { "
+                    + "width: 100%; "
+                    + "border-collapse: collapse; "
+                    + "min-width: 1100px; "
+                    + "}"
             );
 
             out.println(
-                "th { " +
-                "background: #172554; " +
-                "color: white; " +
-                "padding: 13px; " +
-                "text-align: left; " +
-                "}"
+                    "th { "
+                    + "background: #172554; "
+                    + "color: white; "
+                    + "padding: 13px; "
+                    + "text-align: left; "
+                    + "}"
             );
 
             out.println(
-                "td { " +
-                "padding: 12px; " +
-                "border-bottom: 1px solid #e5e7eb; " +
-                "}"
+                    "td { "
+                    + "padding: 12px; "
+                    + "border-bottom: 1px solid #e5e7eb; "
+                    + "}"
             );
 
             out.println(
-                "tr:hover { " +
-                "background: #f8fafc; " +
-                "}"
+                    "tr:hover { "
+                    + "background: #f8fafc; "
+                    + "}"
+            );
+
+            // Edit button
+
+            out.println(
+                    ".edit-btn { "
+                    + "display: inline-block; "
+                    + "background: #2563eb; "
+                    + "color: white; "
+                    + "padding: 7px 12px; "
+                    + "border-radius: 6px; "
+                    + "text-decoration: none; "
+                    + "margin-right: 5px; "
+                    + "font-size: 13px; "
+                    + "font-weight: bold; "
+                    + "}"
+            );
+
+            out.println(
+                    ".edit-btn:hover { "
+                    + "background: #1d4ed8; "
+                    + "}"
             );
 
             // Delete button
 
             out.println(
-                ".delete-btn { " +
-                "background: #dc2626; " +
-                "color: white; " +
-                "border: none; " +
-                "padding: 7px 12px; " +
-                "border-radius: 6px; " +
-                "cursor: pointer; " +
-                "}"
+                    ".delete-btn { "
+                    + "background: #dc2626; "
+                    + "color: white; "
+                    + "border: none; "
+                    + "padding: 7px 12px; "
+                    + "border-radius: 6px; "
+                    + "cursor: pointer; "
+                    + "font-size: 13px; "
+                    + "font-weight: bold; "
+                    + "}"
             );
 
             out.println(
-                ".delete-btn:hover { " +
-                "background: #b91c1c; " +
-                "}"
+                    ".delete-btn:hover { "
+                    + "background: #b91c1c; "
+                    + "}"
             );
 
             // Status
 
             out.println(
-                ".status { " +
-                "padding: 6px 10px; " +
-                "border-radius: 20px; " +
-                "font-size: 12px; " +
-                "font-weight: bold; " +
-                "}"
+                    ".status { "
+                    + "padding: 6px 10px; "
+                    + "border-radius: 20px; "
+                    + "font-size: 12px; "
+                    + "font-weight: bold; "
+                    + "}"
             );
 
             out.println(
-                ".online { " +
-                "background: #dbeafe; " +
-                "color: #1d4ed8; " +
-                "}"
+                    ".online { "
+                    + "background: #dbeafe; "
+                    + "color: #1d4ed8; "
+                    + "}"
             );
 
             out.println(
-                ".offline { " +
-                "background: #dcfce7; " +
-                "color: #166534; " +
-                "}"
+                    ".offline { "
+                    + "background: #dcfce7; "
+                    + "color: #166534; "
+                    + "}"
             );
 
             // Responsive
 
             out.println(
-                "@media(max-width: 800px) { " +
-                ".sidebar { " +
-                "position: relative; " +
-                "width: 100%; " +
-                "height: auto; " +
-                "} " +
-                ".main { " +
-                "margin-left: 0; " +
-                "} " +
-                ".form-grid { " +
-                "grid-template-columns: 1fr; " +
-                "} " +
-                ".full { " +
-                "grid-column: auto; " +
-                "} " +
-                "}"
+                    "@media(max-width: 800px) { "
+                    + ".sidebar { "
+                    + "position: relative; "
+                    + "width: 100%; "
+                    + "height: auto; "
+                    + "} "
+                    + ".main { "
+                    + "margin-left: 0; "
+                    + "} "
+                    + ".form-grid { "
+                    + "grid-template-columns: 1fr; "
+                    + "} "
+                    + ".full { "
+                    + "grid-column: auto; "
+                    + "} "
+                    + "}"
             );
 
             out.println("</style>");
@@ -429,36 +454,36 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='sidebar'>");
 
             out.println(
-                "<div class='logo'>" +
-                "Placement<span>Portal</span>" +
-                "</div>"
+                    "<div class='logo'>"
+                    + "Placement<span>Portal</span>"
+                    + "</div>"
             );
 
             out.println("<div class='menu'>");
 
             out.println(
-                "<a href='AdminDashboardServlet'>" +
-                "Dashboard</a>"
+                    "<a href='AdminDashboardServlet'>"
+                    + "Dashboard</a>"
             );
 
             out.println(
-                "<a href='StudentServlet'>" +
-                "Students</a>"
+                    "<a href='StudentServlet'>"
+                    + "Students</a>"
             );
 
             out.println(
-                "<a href='CompanyServlet'>" +
-                "Companies</a>"
+                    "<a href='CompanyServlet'>"
+                    + "Companies</a>"
             );
 
             out.println(
-                "<a href='AdminApplicationsServlet'>" +
-                "Applications</a>"
+                    "<a href='AdminApplicationsServlet'>"
+                    + "Applications</a>"
             );
 
             out.println(
-                "<a href='AdminInterviewServlet' " +
-                "class='active'>Interviews</a>"
+                    "<a href='AdminInterviewServlet' "
+                    + "class='active'>Interviews</a>"
             );
 
             out.println("</div>");
@@ -475,17 +500,17 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='topbar'>");
 
             out.println(
-                "<h1>Interview Management</h1>"
+                    "<h1>Interview Management</h1>"
             );
 
             String adminEmail =
                     (String) session.getAttribute("adminEmail");
 
             out.println(
-                "<div class='admin-name'>" +
-                "Admin: " +
-                escapeHtml(adminEmail) +
-                "</div>"
+                    "<div class='admin-name'>"
+                    + "Admin: "
+                    + escapeHtml(adminEmail)
+                    + "</div>"
             );
 
             out.println("</div>");
@@ -497,12 +522,12 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='card'>");
 
             out.println(
-                "<h2>Schedule New Interview</h2>"
+                    "<h2>Schedule New Interview</h2>"
             );
 
             out.println(
-                "<form action='AdminInterviewServlet' " +
-                "method='post'>"
+                    "<form action='AdminInterviewServlet' "
+                    + "method='post'>"
             );
 
             out.println("<div class='form-grid'>");
@@ -510,21 +535,21 @@ public class AdminInterviewServlet extends HttpServlet {
             // Student/Application
 
             out.println(
-                "<div class='form-group full'>"
+                    "<div class='form-group full'>"
             );
 
             out.println(
-                "<label>Select Student Application</label>"
+                    "<label>Select Student Application</label>"
             );
 
             out.println(
-                "<select name='applicationId' required>"
+                    "<select name='applicationId' required>"
             );
 
             out.println(
-                "<option value=''>" +
-                "-- Select Application --" +
-                "</option>"
+                    "<option value=''>"
+                    + "-- Select Application --"
+                    + "</option>"
             );
 
             boolean hasApplications = false;
@@ -550,15 +575,15 @@ public class AdminInterviewServlet extends HttpServlet {
                                 "status");
 
                 out.println(
-                    "<option value='" +
-                    applicationId +
-                    "'>" +
-                    escapeHtml(studentName) +
-                    " - " +
-                    escapeHtml(companyName) +
-                    " (" +
-                    escapeHtml(status) +
-                    ")</option>"
+                        "<option value='"
+                        + applicationId
+                        + "'>"
+                        + escapeHtml(studentName)
+                        + " - "
+                        + escapeHtml(companyName)
+                        + " ("
+                        + escapeHtml(status)
+                        + ")</option>"
                 );
             }
 
@@ -567,11 +592,11 @@ public class AdminInterviewServlet extends HttpServlet {
             if (!hasApplications) {
 
                 out.println(
-                    "<small style='color:#dc2626; " +
-                    "margin-top:6px;'>" +
-                    "No shortlisted or interview " +
-                    "applications available." +
-                    "</small>"
+                        "<small style='color:#dc2626; "
+                        + "margin-top:6px;'>"
+                        + "No shortlisted or interview "
+                        + "applications available."
+                        + "</small>"
                 );
             }
 
@@ -582,12 +607,12 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Interview Date</label>"
+                    "<label>Interview Date</label>"
             );
 
             out.println(
-                "<input type='date' " +
-                "name='interviewDate' required>"
+                    "<input type='date' "
+                    + "name='interviewDate' required>"
             );
 
             out.println("</div>");
@@ -597,12 +622,12 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Interview Time</label>"
+                    "<label>Interview Time</label>"
             );
 
             out.println(
-                "<input type='time' " +
-                "name='interviewTime' required>"
+                    "<input type='time' "
+                    + "name='interviewTime' required>"
             );
 
             out.println("</div>");
@@ -612,19 +637,19 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Interview Mode</label>"
+                    "<label>Interview Mode</label>"
             );
 
             out.println(
-                "<select name='interviewMode' required>"
+                    "<select name='interviewMode' required>"
             );
 
             out.println(
-                "<option value='Online'>Online</option>"
+                    "<option value='Online'>Online</option>"
             );
 
             out.println(
-                "<option value='Offline'>Offline</option>"
+                    "<option value='Offline'>Offline</option>"
             );
 
             out.println("</select>");
@@ -636,14 +661,14 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Interviewer Name</label>"
+                    "<label>Interviewer Name</label>"
             );
 
             out.println(
-                "<input type='text' " +
-                "name='interviewerName' " +
-                "placeholder='Enter interviewer name' " +
-                "required>"
+                    "<input type='text' "
+                    + "name='interviewerName' "
+                    + "placeholder='Enter interviewer name' "
+                    + "required>"
             );
 
             out.println("</div>");
@@ -653,13 +678,13 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Interview Location</label>"
+                    "<label>Interview Location</label>"
             );
 
             out.println(
-                "<input type='text' " +
-                "name='interviewLocation' " +
-                "placeholder='Office / Campus / Location'>"
+                    "<input type='text' "
+                    + "name='interviewLocation' "
+                    + "placeholder='Office / Campus / Location'>"
             );
 
             out.println("</div>");
@@ -669,13 +694,13 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='form-group'>");
 
             out.println(
-                "<label>Meeting Link</label>"
+                    "<label>Meeting Link</label>"
             );
 
             out.println(
-                "<input type='text' " +
-                "name='meetingLink' " +
-                "placeholder='Google Meet / Zoom link'>"
+                    "<input type='text' "
+                    + "name='meetingLink' "
+                    + "placeholder='Google Meet / Zoom link'>"
             );
 
             out.println("</div>");
@@ -683,17 +708,17 @@ public class AdminInterviewServlet extends HttpServlet {
             // Remarks
 
             out.println(
-                "<div class='form-group full'>"
+                    "<div class='form-group full'>"
             );
 
             out.println(
-                "<label>Remarks</label>"
+                    "<label>Remarks</label>"
             );
 
             out.println(
-                "<textarea name='remarks' " +
-                "placeholder='Additional information'>" +
-                "</textarea>"
+                    "<textarea name='remarks' "
+                    + "placeholder='Additional information'>"
+                    + "</textarea>"
             );
 
             out.println("</div>");
@@ -703,9 +728,9 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='full'>");
 
             out.println(
-                "<button type='submit' class='btn'>" +
-                "Schedule Interview" +
-                "</button>"
+                    "<button type='submit' class='btn'>"
+                    + "Schedule Interview"
+                    + "</button>"
             );
 
             out.println("</div>");
@@ -714,10 +739,19 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("</form>");
             out.println("</div>");
 
-            // Close application result
+            // =================================================
+            // CLOSE APPLICATION RESULT
+            // =================================================
 
-            applicationRs.close();
-            applicationPs.close();
+            if (applicationRs != null) {
+                applicationRs.close();
+                applicationRs = null;
+            }
+
+            if (applicationPs != null) {
+                applicationPs.close();
+                applicationPs = null;
+            }
 
             // =================================================
             // SCHEDULED INTERVIEWS
@@ -726,38 +760,38 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='card'>");
 
             out.println(
-                "<h2>Scheduled Interviews</h2>"
+                    "<h2>Scheduled Interviews</h2>"
             );
 
             out.println(
-                "<div class='table-container'>"
+                    "<div class='table-container'>"
             );
 
             String interviewSql =
-                    "SELECT i.id, " +
-                    "i.interview_date, " +
-                    "i.interview_time, " +
-                    "i.interview_mode, " +
-                    "i.interview_location, " +
-                    "i.interviewer_name, " +
-                    "i.meeting_link, " +
-                    "i.remarks, " +
-                    "s.name AS student_name, " +
-                    "c.name AS company_name " +
-                    "FROM interviews i " +
-                    "JOIN applications a " +
-                    "ON i.application_id = a.id " +
-                    "JOIN students s " +
-                    "ON a.student_id = s.id " +
-                    "JOIN companies c " +
-                    "ON a.company_id = c.id " +
-                    "ORDER BY i.interview_date ASC, " +
-                    "i.interview_time ASC";
+                    "SELECT i.id, "
+                    + "i.interview_date, "
+                    + "i.interview_time, "
+                    + "i.interview_mode, "
+                    + "i.interview_location, "
+                    + "i.interviewer_name, "
+                    + "i.meeting_link, "
+                    + "i.remarks, "
+                    + "s.name AS student_name, "
+                    + "c.name AS company_name "
+                    + "FROM interviews i "
+                    + "JOIN applications a "
+                    + "ON i.application_id = a.id "
+                    + "JOIN students s "
+                    + "ON a.student_id = s.id "
+                    + "JOIN companies c "
+                    + "ON a.company_id = c.id "
+                    + "ORDER BY i.interview_date ASC, "
+                    + "i.interview_time ASC";
 
-            PreparedStatement interviewPs =
+            interviewPs =
                     con.prepareStatement(interviewSql);
 
-            ResultSet interviewRs =
+            interviewRs =
                     interviewPs.executeQuery();
 
             out.println("<table>");
@@ -792,137 +826,167 @@ public class AdminInterviewServlet extends HttpServlet {
 
                 out.println("<tr>");
 
-                out.println(
-                    "<td>" +
-                    interviewId +
-                    "</td>"
-                );
+                // ID
 
                 out.println(
-                    "<td>" +
-                    escapeHtml(
-                        interviewRs.getString(
-                            "student_name")
-                    ) +
-                    "</td>"
+                        "<td>"
+                        + interviewId
+                        + "</td>"
                 );
 
-                out.println(
-                    "<td>" +
-                    escapeHtml(
-                        interviewRs.getString(
-                            "company_name")
-                    ) +
-                    "</td>"
-                );
+                // Student
 
                 out.println(
-                    "<td>" +
-                    interviewRs.getDate(
-                        "interview_date") +
-                    "</td>"
+                        "<td>"
+                        + escapeHtml(
+                                interviewRs.getString(
+                                        "student_name"))
+                        + "</td>"
                 );
 
+                // Company
+
                 out.println(
-                    "<td>" +
-                    interviewRs.getTime(
-                        "interview_time") +
-                    "</td>"
+                        "<td>"
+                        + escapeHtml(
+                                interviewRs.getString(
+                                        "company_name"))
+                        + "</td>"
                 );
+
+                // Date
+
+                out.println(
+                        "<td>"
+                        + interviewRs.getDate(
+                                "interview_date")
+                        + "</td>"
+                );
+
+                // Time
+
+                out.println(
+                        "<td>"
+                        + interviewRs.getTime(
+                                "interview_time")
+                        + "</td>"
+                );
+
+                // Mode
 
                 String modeClass =
-                        mode != null &&
-                        mode.equalsIgnoreCase("Online")
+                        mode != null
+                        && mode.equalsIgnoreCase("Online")
                         ? "online"
                         : "offline";
 
                 out.println(
-                    "<td>" +
-                    "<span class='status " +
-                    modeClass +
-                    "'>" +
-                    escapeHtml(mode) +
-                    "</span>" +
-                    "</td>"
+                        "<td>"
+                        + "<span class='status "
+                        + modeClass
+                        + "'>"
+                        + escapeHtml(mode)
+                        + "</span>"
+                        + "</td>"
                 );
 
+                // Interviewer
+
                 out.println(
-                    "<td>" +
-                    escapeHtml(
-                        interviewRs.getString(
-                            "interviewer_name")
-                    ) +
-                    "</td>"
+                        "<td>"
+                        + escapeHtml(
+                                interviewRs.getString(
+                                        "interviewer_name"))
+                        + "</td>"
                 );
+
+                // Location
 
                 String location =
                         interviewRs.getString(
                                 "interview_location");
 
                 out.println(
-                    "<td>" +
-                    (location == null ||
-                     location.trim().isEmpty()
+                        "<td>"
+                        + (location == null
+                        || location.trim().isEmpty()
                         ? "-"
-                        : escapeHtml(location)) +
-                    "</td>"
+                        : escapeHtml(location))
+                        + "</td>"
                 );
+
+                // Meeting Link
 
                 String meetingLink =
                         interviewRs.getString(
                                 "meeting_link");
 
-                if (meetingLink != null &&
-                    !meetingLink.trim().isEmpty()) {
+                if (meetingLink != null
+                        && !meetingLink.trim().isEmpty()) {
 
                     out.println(
-                        "<td>" +
-                        "<a href='" +
-                        escapeHtml(meetingLink) +
-                        "' target='_blank'>" +
-                        "Open Link" +
-                        "</a>" +
-                        "</td>"
+                            "<td>"
+                            + "<a href='"
+                            + escapeHtml(meetingLink)
+                            + "' target='_blank'>"
+                            + "Open Link"
+                            + "</a>"
+                            + "</td>"
                     );
 
                 } else {
 
                     out.println(
-                        "<td>-</td>"
+                            "<td>-</td>"
                     );
                 }
 
-                // Delete
+                // =================================================
+                // EDIT + DELETE ACTIONS
+                // =================================================
 
                 out.println("<td>");
 
+                // EDIT BUTTON
+
                 out.println(
-                    "<form action='AdminInterviewServlet' " +
-                    "method='post' " +
-                    "onsubmit=\"return confirm(" +
-                    "'Are you sure you want to delete " +
-                    "this interview?');\">"
+                        "<a href='EditInterviewServlet?id="
+                        + interviewId
+                        + "' class='edit-btn'>"
+                        + "Edit"
+                        + "</a>"
+                );
+
+                // DELETE FORM
+
+                out.println(
+                        "<form action='AdminInterviewServlet' "
+                        + "method='post' "
+                        + "style='display:inline;' "
+                        + "onsubmit=\"return confirm("
+                        + "'Are you sure you want to delete "
+                        + "this interview?');\">"
                 );
 
                 out.println(
-                    "<input type='hidden' " +
-                    "name='action' " +
-                    "value='delete'>"
+                        "<input type='hidden' "
+                        + "name='action' "
+                        + "value='delete'>"
                 );
 
                 out.println(
-                    "<input type='hidden' " +
-                    "name='interviewId' " +
-                    "value='" +
-                    interviewId +
-                    "'>"
+                        "<input type='hidden' "
+                        + "name='interviewId' "
+                        + "value='"
+                        + interviewId
+                        + "'>"
                 );
 
                 out.println(
-                    "<button type='submit' " +
-                    "class='delete-btn'>" +
-                    "Delete" +
-                    "</button>"
+                        "<button type='submit' "
+                        + "class='delete-btn'>"
+                        + "Delete"
+                        + "</button>"
                 );
 
                 out.println("</form>");
@@ -937,18 +1001,19 @@ public class AdminInterviewServlet extends HttpServlet {
                 out.println("<tr>");
 
                 out.println(
-                    "<td colspan='10' " +
-                    "style='text-align:center; " +
-                    "padding:30px; " +
-                    "color:#64748b;'>" +
-                    "No interviews scheduled yet." +
-                    "</td>"
+                        "<td colspan='10' "
+                        + "style='text-align:center; "
+                        + "padding:30px; "
+                        + "color:#64748b;'>"
+                        + "No interviews scheduled yet."
+                        + "</td>"
                 );
 
                 out.println("</tr>");
             }
 
             out.println("</table>");
+
             out.println("</div>");
             out.println("</div>");
 
@@ -956,25 +1021,51 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("</body>");
             out.println("</html>");
 
-            interviewRs.close();
-            interviewPs.close();
-
         } catch (Exception e) {
 
             e.printStackTrace();
 
-            out.println("<h2>Error loading interview page</h2>");
+            out.println(
+                    "<h2>Error loading interview page</h2>"
+            );
 
             out.println(
-                "<p>" +
-                escapeHtml(e.getMessage()) +
-                "</p>"
+                    "<p>"
+                    + escapeHtml(e.getMessage())
+                    + "</p>"
             );
 
         } finally {
 
-            if (con != null) {
+            if (interviewRs != null) {
+                try {
+                    interviewRs.close();
+                } catch (Exception ignored) {
+                }
+            }
 
+            if (interviewPs != null) {
+                try {
+                    interviewPs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (applicationRs != null) {
+                try {
+                    applicationRs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (applicationPs != null) {
+                try {
+                    applicationPs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (con != null) {
                 try {
                     con.close();
                 } catch (Exception ignored) {
@@ -989,7 +1080,7 @@ public class AdminInterviewServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request,
-                           HttpServletResponse response)
+                          HttpServletResponse response)
             throws ServletException, IOException {
 
         // -----------------------------------------------------
@@ -998,10 +1089,10 @@ public class AdminInterviewServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        if (session == null ||
-            session.getAttribute("isAdmin") == null ||
-            !Boolean.TRUE.equals(
-                    session.getAttribute("isAdmin"))) {
+        if (session == null
+                || session.getAttribute("isAdmin") == null
+                || !Boolean.TRUE.equals(
+                        session.getAttribute("isAdmin"))) {
 
             response.sendRedirect("AdminLoginServlet");
             return;
@@ -1016,7 +1107,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "no-cache, no-store, must-revalidate");
 
         response.setHeader("Pragma", "no-cache");
-
         response.setDateHeader("Expires", 0);
 
         String action =
@@ -1031,8 +1121,8 @@ public class AdminInterviewServlet extends HttpServlet {
             String interviewIdParam =
                     request.getParameter("interviewId");
 
-            if (interviewIdParam == null ||
-                interviewIdParam.trim().isEmpty()) {
+            if (interviewIdParam == null
+                    || interviewIdParam.trim().isEmpty()) {
 
                 response.sendRedirect(
                         "AdminInterviewServlet");
@@ -1049,13 +1139,11 @@ public class AdminInterviewServlet extends HttpServlet {
                         Integer.parseInt(
                                 interviewIdParam);
 
-                // Use Railway/local DBConnection
-
                 con = DBConnection.getConnection();
 
                 String sql =
-                        "DELETE FROM interviews " +
-                        "WHERE id = ?";
+                        "DELETE FROM interviews "
+                        + "WHERE id = ?";
 
                 ps = con.prepareStatement(sql);
 
@@ -1131,16 +1219,16 @@ public class AdminInterviewServlet extends HttpServlet {
         // Basic Validation
         // -----------------------------------------------------
 
-        if (applicationIdParam == null ||
-            interviewDate == null ||
-            interviewTime == null ||
-            interviewMode == null ||
-            interviewerName == null ||
-            applicationIdParam.trim().isEmpty() ||
-            interviewDate.trim().isEmpty() ||
-            interviewTime.trim().isEmpty() ||
-            interviewMode.trim().isEmpty() ||
-            interviewerName.trim().isEmpty()) {
+        if (applicationIdParam == null
+                || interviewDate == null
+                || interviewTime == null
+                || interviewMode == null
+                || interviewerName == null
+                || applicationIdParam.trim().isEmpty()
+                || interviewDate.trim().isEmpty()
+                || interviewTime.trim().isEmpty()
+                || interviewMode.trim().isEmpty()
+                || interviewerName.trim().isEmpty()) {
 
             response.sendRedirect(
                     "AdminInterviewServlet");
@@ -1149,6 +1237,15 @@ public class AdminInterviewServlet extends HttpServlet {
         }
 
         Connection con = null;
+
+        PreparedStatement checkPs = null;
+        ResultSet checkRs = null;
+
+        PreparedStatement duplicatePs = null;
+        ResultSet duplicateRs = null;
+
+        PreparedStatement insertPs = null;
+        PreparedStatement statusPs = null;
 
         try {
 
@@ -1167,40 +1264,37 @@ public class AdminInterviewServlet extends HttpServlet {
             // -------------------------------------------------
 
             String checkSql =
-                    "SELECT id FROM applications " +
-                    "WHERE id = ?";
+                    "SELECT id FROM applications "
+                    + "WHERE id = ?";
 
-            PreparedStatement checkPs =
+            checkPs =
                     con.prepareStatement(checkSql);
 
             checkPs.setInt(1, applicationId);
 
-            ResultSet checkRs =
+            checkRs =
                     checkPs.executeQuery();
 
             if (!checkRs.next()) {
-
-                checkRs.close();
-                checkPs.close();
-
-                response.sendRedirect(
-                        "AdminInterviewServlet");
 
                 return;
             }
 
             checkRs.close();
+            checkRs = null;
+
             checkPs.close();
+            checkPs = null;
 
             // -------------------------------------------------
             // Check whether interview already exists
             // -------------------------------------------------
 
             String duplicateSql =
-                    "SELECT id FROM interviews " +
-                    "WHERE application_id = ?";
+                    "SELECT id FROM interviews "
+                    + "WHERE application_id = ?";
 
-            PreparedStatement duplicatePs =
+            duplicatePs =
                     con.prepareStatement(
                             duplicateSql);
 
@@ -1208,40 +1302,37 @@ public class AdminInterviewServlet extends HttpServlet {
                     1,
                     applicationId);
 
-            ResultSet duplicateRs =
+            duplicateRs =
                     duplicatePs.executeQuery();
 
             if (duplicateRs.next()) {
-
-                duplicateRs.close();
-                duplicatePs.close();
-
-                response.sendRedirect(
-                        "AdminInterviewServlet");
 
                 return;
             }
 
             duplicateRs.close();
+            duplicateRs = null;
+
             duplicatePs.close();
+            duplicatePs = null;
 
             // -------------------------------------------------
             // Insert Interview
             // -------------------------------------------------
 
             String insertSql =
-                    "INSERT INTO interviews " +
-                    "(application_id, " +
-                    "interview_date, " +
-                    "interview_time, " +
-                    "interview_mode, " +
-                    "interview_location, " +
-                    "interviewer_name, " +
-                    "meeting_link, " +
-                    "remarks) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    "INSERT INTO interviews "
+                    + "(application_id, "
+                    + "interview_date, "
+                    + "interview_time, "
+                    + "interview_mode, "
+                    + "interview_location, "
+                    + "interviewer_name, "
+                    + "meeting_link, "
+                    + "remarks) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-            PreparedStatement insertPs =
+            insertPs =
                     con.prepareStatement(insertSql);
 
             insertPs.setInt(
@@ -1279,17 +1370,18 @@ public class AdminInterviewServlet extends HttpServlet {
             insertPs.executeUpdate();
 
             insertPs.close();
+            insertPs = null;
 
             // -------------------------------------------------
             // Change application status to INTERVIEW
             // -------------------------------------------------
 
             String statusSql =
-                    "UPDATE applications " +
-                    "SET status = 'INTERVIEW' " +
-                    "WHERE id = ?";
+                    "UPDATE applications "
+                    + "SET status = 'INTERVIEW' "
+                    + "WHERE id = ?";
 
-            PreparedStatement statusPs =
+            statusPs =
                     con.prepareStatement(statusSql);
 
             statusPs.setInt(
@@ -1299,6 +1391,7 @@ public class AdminInterviewServlet extends HttpServlet {
             statusPs.executeUpdate();
 
             statusPs.close();
+            statusPs = null;
 
             response.sendRedirect(
                     "AdminInterviewServlet");
@@ -1312,8 +1405,49 @@ public class AdminInterviewServlet extends HttpServlet {
 
         } finally {
 
-            if (con != null) {
+            if (checkRs != null) {
+                try {
+                    checkRs.close();
+                } catch (Exception ignored) {
+                }
+            }
 
+            if (checkPs != null) {
+                try {
+                    checkPs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (duplicateRs != null) {
+                try {
+                    duplicateRs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (duplicatePs != null) {
+                try {
+                    duplicatePs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (insertPs != null) {
+                try {
+                    insertPs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (statusPs != null) {
+                try {
+                    statusPs.close();
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (con != null) {
                 try {
                     con.close();
                 } catch (Exception ignored) {
