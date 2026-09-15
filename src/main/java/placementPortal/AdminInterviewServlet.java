@@ -1,8 +1,9 @@
+
 package placementPortal;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -18,15 +19,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
-
     // =========================================================
     // GET - Display Interview Management Page
     // =========================================================
@@ -37,7 +29,7 @@ public class AdminInterviewServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // -----------------------------------------------------
-        // Check Admin Login
+        // ADMIN SECURITY CHECK
         // -----------------------------------------------------
 
         HttpSession session = request.getSession(false);
@@ -51,23 +43,34 @@ public class AdminInterviewServlet extends HttpServlet {
             return;
         }
 
+        // -----------------------------------------------------
+        // Prevent cached admin pages
+        // -----------------------------------------------------
+
+        response.setHeader(
+                "Cache-Control",
+                "no-cache, no-store, must-revalidate");
+
+        response.setHeader("Pragma", "no-cache");
+
+        response.setDateHeader("Expires", 0);
+
         response.setContentType("text/html;charset=UTF-8");
 
         PrintWriter out = response.getWriter();
 
+        Connection con = null;
+
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // =================================================
+            // CONNECT USING DBConnection
+            // =================================================
 
-            Connection con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
-
+            con = DBConnection.getConnection();
 
             // =================================================
-            // Get Students Who Have Applied
+            // GET STUDENTS WHO ARE SHORTLISTED / INTERVIEW
             // =================================================
 
             String applicationSql =
@@ -86,16 +89,14 @@ public class AdminInterviewServlet extends HttpServlet {
                     "('SHORTLISTED', 'INTERVIEW') " +
                     "ORDER BY a.applied_date DESC";
 
-
             PreparedStatement applicationPs =
                     con.prepareStatement(applicationSql);
 
             ResultSet applicationRs =
                     applicationPs.executeQuery();
 
-
             // =================================================
-            // Start HTML
+            // START HTML
             // =================================================
 
             out.println("<!DOCTYPE html>");
@@ -109,8 +110,9 @@ public class AdminInterviewServlet extends HttpServlet {
                 "content='width=device-width, initial-scale=1.0'>"
             );
 
-            out.println("<title>Interview Management</title>");
-
+            out.println(
+                "<title>Interview Management</title>"
+            );
 
             // =================================================
             // CSS
@@ -133,7 +135,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "color: #222; " +
                 "}"
             );
-
 
             // Sidebar
 
@@ -190,7 +191,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "}"
             );
 
-
             // Main
 
             out.println(
@@ -225,7 +225,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "}"
             );
 
-
             // Card
 
             out.println(
@@ -244,7 +243,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "margin-bottom: 20px; " +
                 "}"
             );
-
 
             // Form
 
@@ -295,7 +293,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "}"
             );
 
-
             // Button
 
             out.println(
@@ -316,7 +313,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "background: #1d4ed8; " +
                 "}"
             );
-
 
             // Table
 
@@ -356,7 +352,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "}"
             );
 
-
             // Delete button
 
             out.println(
@@ -375,7 +370,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "background: #b91c1c; " +
                 "}"
             );
-
 
             // Status
 
@@ -402,7 +396,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "}"
             );
 
-
             // Responsive
 
             out.println(
@@ -427,9 +420,7 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("</style>");
 
             out.println("</head>");
-
             out.println("<body>");
-
 
             // =================================================
             // SIDEBAR
@@ -446,15 +437,18 @@ public class AdminInterviewServlet extends HttpServlet {
             out.println("<div class='menu'>");
 
             out.println(
-                "<a href='AdminDashboardServlet'>Dashboard</a>"
+                "<a href='AdminDashboardServlet'>" +
+                "Dashboard</a>"
             );
 
             out.println(
-                "<a href='StudentServlet'>Students</a>"
+                "<a href='StudentServlet'>" +
+                "Students</a>"
             );
 
             out.println(
-                "<a href='CompanyServlet'>Companies</a>"
+                "<a href='CompanyServlet'>" +
+                "Companies</a>"
             );
 
             out.println(
@@ -468,16 +462,13 @@ public class AdminInterviewServlet extends HttpServlet {
             );
 
             out.println("</div>");
-
             out.println("</div>");
-
 
             // =================================================
             // MAIN
             // =================================================
 
             out.println("<div class='main'>");
-
 
             // Topbar
 
@@ -499,7 +490,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // =================================================
             // SCHEDULE INTERVIEW FORM
             // =================================================
@@ -517,10 +507,11 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("<div class='form-grid'>");
 
-
             // Student/Application
 
-            out.println("<div class='form-group full'>");
+            out.println(
+                "<div class='form-group full'>"
+            );
 
             out.println(
                 "<label>Select Student Application</label>"
@@ -536,7 +527,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 "</option>"
             );
 
-
             boolean hasApplications = false;
 
             while (applicationRs.next()) {
@@ -550,10 +540,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 String studentName =
                         applicationRs.getString(
                                 "student_name");
-
-                String studentEmail =
-                        applicationRs.getString(
-                                "student_email");
 
                 String companyName =
                         applicationRs.getString(
@@ -591,7 +577,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Date
 
             out.println("<div class='form-group'>");
@@ -607,7 +592,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Time
 
             out.println("<div class='form-group'>");
@@ -622,7 +606,6 @@ public class AdminInterviewServlet extends HttpServlet {
             );
 
             out.println("</div>");
-
 
             // Mode
 
@@ -648,7 +631,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Interviewer
 
             out.println("<div class='form-group'>");
@@ -666,7 +648,6 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Location
 
             out.println("<div class='form-group'>");
@@ -682,7 +663,6 @@ public class AdminInterviewServlet extends HttpServlet {
             );
 
             out.println("</div>");
-
 
             // Meeting Link
 
@@ -700,10 +680,11 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             // Remarks
 
-            out.println("<div class='form-group full'>");
+            out.println(
+                "<div class='form-group full'>"
+            );
 
             out.println(
                 "<label>Remarks</label>"
@@ -711,11 +692,11 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println(
                 "<textarea name='remarks' " +
-                "placeholder='Additional information'></textarea>"
+                "placeholder='Additional information'>" +
+                "</textarea>"
             );
 
             out.println("</div>");
-
 
             // Submit
 
@@ -729,20 +710,14 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             out.println("</div>");
-
             out.println("</form>");
-
             out.println("</div>");
-
 
             // Close application result
 
             applicationRs.close();
-
             applicationPs.close();
-
 
             // =================================================
             // SCHEDULED INTERVIEWS
@@ -754,7 +729,9 @@ public class AdminInterviewServlet extends HttpServlet {
                 "<h2>Scheduled Interviews</h2>"
             );
 
-            out.println("<div class='table-container'>");
+            out.println(
+                "<div class='table-container'>"
+            );
 
             String interviewSql =
                     "SELECT i.id, " +
@@ -777,13 +754,11 @@ public class AdminInterviewServlet extends HttpServlet {
                     "ORDER BY i.interview_date ASC, " +
                     "i.interview_time ASC";
 
-
             PreparedStatement interviewPs =
                     con.prepareStatement(interviewSql);
 
             ResultSet interviewRs =
                     interviewPs.executeQuery();
-
 
             out.println("<table>");
 
@@ -802,9 +777,7 @@ public class AdminInterviewServlet extends HttpServlet {
 
             out.println("</tr>");
 
-
             boolean hasInterviews = false;
-
 
             while (interviewRs.next()) {
 
@@ -816,7 +789,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 String mode =
                         interviewRs.getString(
                                 "interview_mode");
-
 
                 out.println("<tr>");
 
@@ -858,13 +830,11 @@ public class AdminInterviewServlet extends HttpServlet {
                     "</td>"
                 );
 
-
                 String modeClass =
                         mode != null &&
                         mode.equalsIgnoreCase("Online")
                         ? "online"
                         : "offline";
-
 
                 out.println(
                     "<td>" +
@@ -876,7 +846,6 @@ public class AdminInterviewServlet extends HttpServlet {
                     "</td>"
                 );
 
-
                 out.println(
                     "<td>" +
                     escapeHtml(
@@ -885,7 +854,6 @@ public class AdminInterviewServlet extends HttpServlet {
                     ) +
                     "</td>"
                 );
-
 
                 String location =
                         interviewRs.getString(
@@ -900,11 +868,9 @@ public class AdminInterviewServlet extends HttpServlet {
                     "</td>"
                 );
 
-
                 String meetingLink =
                         interviewRs.getString(
                                 "meeting_link");
-
 
                 if (meetingLink != null &&
                     !meetingLink.trim().isEmpty()) {
@@ -926,7 +892,6 @@ public class AdminInterviewServlet extends HttpServlet {
                     );
                 }
 
-
                 // Delete
 
                 out.println("<td>");
@@ -936,8 +901,7 @@ public class AdminInterviewServlet extends HttpServlet {
                     "method='post' " +
                     "onsubmit=\"return confirm(" +
                     "'Are you sure you want to delete " +
-                    "this interview?'"
-                    + ");\">"
+                    "this interview?');\">"
                 );
 
                 out.println(
@@ -968,7 +932,6 @@ public class AdminInterviewServlet extends HttpServlet {
                 out.println("</tr>");
             }
 
-
             if (!hasInterviews) {
 
                 out.println("<tr>");
@@ -985,27 +948,16 @@ public class AdminInterviewServlet extends HttpServlet {
                 out.println("</tr>");
             }
 
-
             out.println("</table>");
-
+            out.println("</div>");
             out.println("</div>");
 
             out.println("</div>");
-
-
-            out.println("</div>");
-
             out.println("</body>");
-
             out.println("</html>");
 
-
             interviewRs.close();
-
             interviewPs.close();
-
-            con.close();
-
 
         } catch (Exception e) {
 
@@ -1018,9 +970,18 @@ public class AdminInterviewServlet extends HttpServlet {
                 escapeHtml(e.getMessage()) +
                 "</p>"
             );
+
+        } finally {
+
+            if (con != null) {
+
+                try {
+                    con.close();
+                } catch (Exception ignored) {
+                }
+            }
         }
     }
-
 
     // =========================================================
     // POST - Schedule or Delete Interview
@@ -1031,9 +992,8 @@ public class AdminInterviewServlet extends HttpServlet {
                            HttpServletResponse response)
             throws ServletException, IOException {
 
-
         // -----------------------------------------------------
-        // Check Admin Login
+        // ADMIN SECURITY CHECK
         // -----------------------------------------------------
 
         HttpSession session = request.getSession(false);
@@ -1047,10 +1007,20 @@ public class AdminInterviewServlet extends HttpServlet {
             return;
         }
 
+        // -----------------------------------------------------
+        // Prevent cached admin pages
+        // -----------------------------------------------------
+
+        response.setHeader(
+                "Cache-Control",
+                "no-cache, no-store, must-revalidate");
+
+        response.setHeader("Pragma", "no-cache");
+
+        response.setDateHeader("Expires", 0);
 
         String action =
                 request.getParameter("action");
-
 
         // =====================================================
         // DELETE INTERVIEW
@@ -1061,6 +1031,17 @@ public class AdminInterviewServlet extends HttpServlet {
             String interviewIdParam =
                     request.getParameter("interviewId");
 
+            if (interviewIdParam == null ||
+                interviewIdParam.trim().isEmpty()) {
+
+                response.sendRedirect(
+                        "AdminInterviewServlet");
+
+                return;
+            }
+
+            Connection con = null;
+            PreparedStatement ps = null;
 
             try {
 
@@ -1068,58 +1049,53 @@ public class AdminInterviewServlet extends HttpServlet {
                         Integer.parseInt(
                                 interviewIdParam);
 
+                // Use Railway/local DBConnection
 
-                Class.forName(
-                    "com.mysql.cj.jdbc.Driver"
-                );
-
-
-                Connection con =
-                    DriverManager.getConnection(
-                        DB_URL,
-                        DB_USER,
-                        DB_PASSWORD
-                    );
-
+                con = DBConnection.getConnection();
 
                 String sql =
-                    "DELETE FROM interviews " +
-                    "WHERE id = ?";
+                        "DELETE FROM interviews " +
+                        "WHERE id = ?";
 
-
-                PreparedStatement ps =
-                    con.prepareStatement(sql);
-
+                ps = con.prepareStatement(sql);
 
                 ps.setInt(1, interviewId);
 
                 ps.executeUpdate();
 
-
-                ps.close();
-
-                con.close();
-
-
                 response.sendRedirect(
-                    "AdminInterviewServlet"
-                );
+                        "AdminInterviewServlet");
 
                 return;
-
 
             } catch (Exception e) {
 
                 e.printStackTrace();
 
                 response.sendRedirect(
-                    "AdminInterviewServlet"
-                );
+                        "AdminInterviewServlet");
 
                 return;
+
+            } finally {
+
+                if (ps != null) {
+
+                    try {
+                        ps.close();
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                if (con != null) {
+
+                    try {
+                        con.close();
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         }
-
 
         // =====================================================
         // SCHEDULE INTERVIEW
@@ -1151,7 +1127,6 @@ public class AdminInterviewServlet extends HttpServlet {
         String remarks =
                 request.getParameter("remarks");
 
-
         // -----------------------------------------------------
         // Basic Validation
         // -----------------------------------------------------
@@ -1168,12 +1143,12 @@ public class AdminInterviewServlet extends HttpServlet {
             interviewerName.trim().isEmpty()) {
 
             response.sendRedirect(
-                "AdminInterviewServlet"
-            );
+                    "AdminInterviewServlet");
 
             return;
         }
 
+        Connection con = null;
 
         try {
 
@@ -1181,235 +1156,174 @@ public class AdminInterviewServlet extends HttpServlet {
                     Integer.parseInt(
                             applicationIdParam);
 
+            // =================================================
+            // CONNECT USING DBConnection
+            // =================================================
 
-            Class.forName(
-                "com.mysql.cj.jdbc.Driver"
-            );
-
-
-            Connection con =
-                DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-                );
-
+            con = DBConnection.getConnection();
 
             // -------------------------------------------------
             // Check whether application exists
             // -------------------------------------------------
 
             String checkSql =
-                "SELECT id FROM applications " +
-                "WHERE id = ?";
-
+                    "SELECT id FROM applications " +
+                    "WHERE id = ?";
 
             PreparedStatement checkPs =
-                con.prepareStatement(checkSql);
-
+                    con.prepareStatement(checkSql);
 
             checkPs.setInt(1, applicationId);
 
-
             ResultSet checkRs =
-                checkPs.executeQuery();
-
+                    checkPs.executeQuery();
 
             if (!checkRs.next()) {
 
                 checkRs.close();
-
                 checkPs.close();
 
-                con.close();
-
                 response.sendRedirect(
-                    "AdminInterviewServlet"
-                );
+                        "AdminInterviewServlet");
 
                 return;
             }
 
-
             checkRs.close();
-
             checkPs.close();
-
 
             // -------------------------------------------------
             // Check whether interview already exists
             // -------------------------------------------------
 
             String duplicateSql =
-                "SELECT id FROM interviews " +
-                "WHERE application_id = ?";
-
+                    "SELECT id FROM interviews " +
+                    "WHERE application_id = ?";
 
             PreparedStatement duplicatePs =
-                con.prepareStatement(
-                        duplicateSql);
-
+                    con.prepareStatement(
+                            duplicateSql);
 
             duplicatePs.setInt(
-                1,
-                applicationId
-            );
-
+                    1,
+                    applicationId);
 
             ResultSet duplicateRs =
-                duplicatePs.executeQuery();
-
+                    duplicatePs.executeQuery();
 
             if (duplicateRs.next()) {
 
                 duplicateRs.close();
-
                 duplicatePs.close();
 
-                con.close();
-
                 response.sendRedirect(
-                    "AdminInterviewServlet"
-                );
+                        "AdminInterviewServlet");
 
                 return;
             }
 
-
             duplicateRs.close();
-
             duplicatePs.close();
-
 
             // -------------------------------------------------
             // Insert Interview
             // -------------------------------------------------
 
             String insertSql =
-                "INSERT INTO interviews " +
-                "(application_id, " +
-                "interview_date, " +
-                "interview_time, " +
-                "interview_mode, " +
-                "interview_location, " +
-                "interviewer_name, " +
-                "meeting_link, " +
-                "remarks) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+                    "INSERT INTO interviews " +
+                    "(application_id, " +
+                    "interview_date, " +
+                    "interview_time, " +
+                    "interview_mode, " +
+                    "interview_location, " +
+                    "interviewer_name, " +
+                    "meeting_link, " +
+                    "remarks) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement insertPs =
-                con.prepareStatement(insertSql);
-
+                    con.prepareStatement(insertSql);
 
             insertPs.setInt(
-                1,
-                applicationId
-            );
+                    1,
+                    applicationId);
 
             insertPs.setString(
-                2,
-                interviewDate
-            );
+                    2,
+                    interviewDate);
 
             insertPs.setString(
-                3,
-                interviewTime
-            );
+                    3,
+                    interviewTime);
 
             insertPs.setString(
-                4,
-                interviewMode
-            );
+                    4,
+                    interviewMode);
 
             insertPs.setString(
-                5,
-                interviewLocation
-            );
+                    5,
+                    interviewLocation);
 
             insertPs.setString(
-                6,
-                interviewerName
-            );
+                    6,
+                    interviewerName);
 
             insertPs.setString(
-                7,
-                meetingLink
-            );
+                    7,
+                    meetingLink);
 
             insertPs.setString(
-                8,
-                remarks
-            );
-
+                    8,
+                    remarks);
 
             insertPs.executeUpdate();
 
-
             insertPs.close();
-
-            con.close();
-
 
             // -------------------------------------------------
             // Change application status to INTERVIEW
             // -------------------------------------------------
 
-            Class.forName(
-                "com.mysql.cj.jdbc.Driver"
-            );
-
-
-            Connection con2 =
-                DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-                );
-
-
             String statusSql =
-                "UPDATE applications " +
-                "SET status = 'INTERVIEW' " +
-                "WHERE id = ?";
-
+                    "UPDATE applications " +
+                    "SET status = 'INTERVIEW' " +
+                    "WHERE id = ?";
 
             PreparedStatement statusPs =
-                con2.prepareStatement(statusSql);
-
+                    con.prepareStatement(statusSql);
 
             statusPs.setInt(
-                1,
-                applicationId
-            );
-
+                    1,
+                    applicationId);
 
             statusPs.executeUpdate();
 
-
             statusPs.close();
 
-            con2.close();
-
-
             response.sendRedirect(
-                "AdminInterviewServlet"
-            );
-
+                    "AdminInterviewServlet");
 
         } catch (Exception e) {
 
             e.printStackTrace();
 
             response.sendRedirect(
-                "AdminInterviewServlet"
-            );
+                    "AdminInterviewServlet");
+
+        } finally {
+
+            if (con != null) {
+
+                try {
+                    con.close();
+                } catch (Exception ignored) {
+                }
+            }
         }
     }
 
-
     // =========================================================
-    // HTML Escape Helper
+    // HTML ESCAPE HELPER
     // =========================================================
 
     private String escapeHtml(String value) {
