@@ -1,9 +1,9 @@
+
 package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -18,14 +18,9 @@ public class ResetPasswordServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
-
+    // ---------------------------------------------------------
+    // GET - Show reset password page
+    // ---------------------------------------------------------
     @Override
     protected void doGet(HttpServletRequest request,
                           HttpServletResponse response)
@@ -34,6 +29,9 @@ public class ResetPasswordServlet extends HttpServlet {
         showResetPage(response, "", "");
     }
 
+    // ---------------------------------------------------------
+    // POST - Reset student password
+    // ---------------------------------------------------------
     @Override
     protected void doPost(HttpServletRequest request,
                            HttpServletResponse response)
@@ -46,33 +44,44 @@ public class ResetPasswordServlet extends HttpServlet {
         String confirmPassword =
                 request.getParameter("confirmPassword");
 
-        // Remove extra spaces
+        // -----------------------------------------------------
+        // Remove extra spaces from email
+        // -----------------------------------------------------
+
         if (email != null) {
             email = email.trim();
         }
 
+        // -----------------------------------------------------
         // Check empty fields
+        // -----------------------------------------------------
+
         if (email == null || email.isEmpty() ||
             newPassword == null || newPassword.isEmpty() ||
             confirmPassword == null ||
             confirmPassword.isEmpty()) {
 
             showResetPage(
-                response,
-                "Please fill all fields.",
-                "error"
+                    response,
+                    "Please fill all fields.",
+                    "error"
             );
+
             return;
         }
 
+        // -----------------------------------------------------
         // Check password match
+        // -----------------------------------------------------
+
         if (!newPassword.equals(confirmPassword)) {
 
             showResetPage(
-                response,
-                "New password and confirm password do not match.",
-                "error"
+                    response,
+                    "New password and confirm password do not match.",
+                    "error"
             );
+
             return;
         }
 
@@ -83,15 +92,18 @@ public class ResetPasswordServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // -------------------------------------------------
+            // IMPORTANT:
+            // Use central DBConnection.
+            // This works with Railway MySQL.
+            // -------------------------------------------------
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
+            con = DBConnection.getConnection();
 
+            // -------------------------------------------------
             // Find student using email
+            // -------------------------------------------------
+
             String checkSql =
                     "SELECT id FROM students WHERE email = ?";
 
@@ -101,21 +113,31 @@ public class ResetPasswordServlet extends HttpServlet {
 
             rs = checkPs.executeQuery();
 
+            // -------------------------------------------------
+            // Student not found
+            // -------------------------------------------------
+
             if (!rs.next()) {
 
                 showResetPage(
-                    response,
-                    "No student account found with this email.",
-                    "error"
+                        response,
+                        "No student account found with this email.",
+                        "error"
                 );
 
                 return;
             }
 
-            // Get student ID automatically
+            // -------------------------------------------------
+            // Get student ID
+            // -------------------------------------------------
+
             int studentId = rs.getInt("id");
 
+            // -------------------------------------------------
             // Update password
+            // -------------------------------------------------
+
             String updateSql =
                     "UPDATE students SET password = ? " +
                     "WHERE id = ?";
@@ -127,6 +149,10 @@ public class ResetPasswordServlet extends HttpServlet {
 
             int updated = updatePs.executeUpdate();
 
+            // -------------------------------------------------
+            // Password changed successfully
+            // -------------------------------------------------
+
             if (updated > 0) {
 
                 response.setContentType(
@@ -137,19 +163,26 @@ public class ResetPasswordServlet extends HttpServlet {
 
                 out.println("<!DOCTYPE html>");
                 out.println("<html>");
+
                 out.println("<head>");
+
+                out.println("<meta charset='UTF-8'>");
+
+                out.println("<meta name='viewport' " +
+                        "content='width=device-width, initial-scale=1.0'>");
 
                 out.println("<title>Password Changed</title>");
 
                 out.println("<style>");
 
                 out.println("body {");
-                out.println("font-family: Arial;");
+                out.println("font-family: Arial, sans-serif;");
                 out.println("background: #f4f6f9;");
                 out.println("display: flex;");
                 out.println("justify-content: center;");
                 out.println("align-items: center;");
                 out.println("height: 100vh;");
+                out.println("margin: 0;");
                 out.println("}");
 
                 out.println(".box {");
@@ -158,9 +191,16 @@ public class ResetPasswordServlet extends HttpServlet {
                 out.println("border-radius: 12px;");
                 out.println("text-align: center;");
                 out.println("box-shadow: 0 3px 15px rgba(0,0,0,0.15);");
+                out.println("width: 380px;");
                 out.println("}");
 
-                out.println("h2 { color: green; }");
+                out.println("h2 {");
+                out.println("color: green;");
+                out.println("}");
+
+                out.println("p {");
+                out.println("color: #555;");
+                out.println("}");
 
                 out.println("a {");
                 out.println("display: inline-block;");
@@ -170,6 +210,10 @@ public class ResetPasswordServlet extends HttpServlet {
                 out.println("color: white;");
                 out.println("text-decoration: none;");
                 out.println("border-radius: 6px;");
+                out.println("}");
+
+                out.println("a:hover {");
+                out.println("background: #0056b3;");
                 out.println("}");
 
                 out.println("</style>");
@@ -182,9 +226,15 @@ public class ResetPasswordServlet extends HttpServlet {
 
                 out.println("<h2>Password Changed Successfully!</h2>");
 
-                out.println("<p>You can now login using your new password.</p>");
+                out.println("<p>");
+                out.println(
+                        "You can now login using your new password."
+                );
+                out.println("</p>");
 
-                out.println("<a href='LoginServlet'>Go to Student Login</a>");
+                out.println("<a href='LoginServlet'>");
+                out.println("Go to Student Login");
+                out.println("</a>");
 
                 out.println("</div>");
 
@@ -195,46 +245,65 @@ public class ResetPasswordServlet extends HttpServlet {
             } else {
 
                 showResetPage(
-                    response,
-                    "Password could not be changed. Please try again.",
-                    "error"
+                        response,
+                        "Password could not be changed. Please try again.",
+                        "error"
                 );
             }
 
         } catch (Exception e) {
 
+            // -------------------------------------------------
+            // Print error in server logs
+            // -------------------------------------------------
+
             e.printStackTrace();
 
             showResetPage(
-                response,
-                "Something went wrong: " + e.getMessage(),
-                "error"
+                    response,
+                    "Something went wrong: " + e.getMessage(),
+                    "error"
             );
 
         } finally {
 
+            // -------------------------------------------------
+            // Close database resources
+            // -------------------------------------------------
+
             try {
-                if (rs != null) rs.close();
-            } catch (Exception e) {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception ignored) {
             }
 
             try {
-                if (checkPs != null) checkPs.close();
-            } catch (Exception e) {
+                if (checkPs != null) {
+                    checkPs.close();
+                }
+            } catch (Exception ignored) {
             }
 
             try {
-                if (updatePs != null) updatePs.close();
-            } catch (Exception e) {
+                if (updatePs != null) {
+                    updatePs.close();
+                }
+            } catch (Exception ignored) {
             }
 
             try {
-                if (con != null) con.close();
-            } catch (Exception e) {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Exception ignored) {
             }
         }
     }
 
+    // ---------------------------------------------------------
+    // Display Reset Password Page
+    // ---------------------------------------------------------
     private void showResetPage(HttpServletResponse response,
                                String message,
                                String type)
@@ -250,6 +319,11 @@ public class ResetPasswordServlet extends HttpServlet {
         out.println("<html>");
 
         out.println("<head>");
+
+        out.println("<meta charset='UTF-8'>");
+
+        out.println("<meta name='viewport' " +
+                "content='width=device-width, initial-scale=1.0'>");
 
         out.println("<title>Reset Password</title>");
 
@@ -322,6 +396,11 @@ public class ResetPasswordServlet extends HttpServlet {
         out.println("margin-top: 20px;");
         out.println("}");
 
+        out.println(".login a {");
+        out.println("color: #007bff;");
+        out.println("text-decoration: none;");
+        out.println("}");
+
         out.println("</style>");
 
         out.println("</head>");
@@ -332,41 +411,64 @@ public class ResetPasswordServlet extends HttpServlet {
 
         out.println("<h2>Reset Student Password</h2>");
 
+        // -----------------------------------------------------
+        // Display error message
+        // -----------------------------------------------------
+
         if (message != null && !message.isEmpty()) {
 
             out.println("<div class='message'>");
-            out.println(message);
+
+            out.println(escapeHtml(message));
+
             out.println("</div>");
         }
 
-        out.println("<form method='post' action='ResetPasswordServlet'>");
+        // -----------------------------------------------------
+        // Reset form
+        // -----------------------------------------------------
+
+        out.println(
+                "<form method='post' " +
+                "action='ResetPasswordServlet'>"
+        );
 
         out.println("<label>Email</label>");
 
-        out.println("<input type='email' "
-                + "name='email' "
-                + "placeholder='Enter registered email' "
-                + "required>");
+        out.println(
+                "<input type='email' " +
+                "name='email' " +
+                "placeholder='Enter registered email' " +
+                "required>"
+        );
 
         out.println("<label>New Password</label>");
 
-        out.println("<input type='password' "
-                + "name='newPassword' "
-                + "placeholder='Enter new password' "
-                + "required>");
+        out.println(
+                "<input type='password' " +
+                "name='newPassword' " +
+                "placeholder='Enter new password' " +
+                "required>"
+        );
 
         out.println("<label>Confirm Password</label>");
 
-        out.println("<input type='password' "
-                + "name='confirmPassword' "
-                + "placeholder='Confirm new password' "
-                + "required>");
+        out.println(
+                "<input type='password' " +
+                "name='confirmPassword' " +
+                "placeholder='Confirm new password' " +
+                "required>"
+        );
 
         out.println("<button type='submit'>");
         out.println("Change Password");
         out.println("</button>");
 
         out.println("</form>");
+
+        // -----------------------------------------------------
+        // Back to login
+        // -----------------------------------------------------
 
         out.println("<div class='login'>");
 
@@ -381,5 +483,22 @@ public class ResetPasswordServlet extends HttpServlet {
         out.println("</body>");
 
         out.println("</html>");
+    }
+
+    // ---------------------------------------------------------
+    // HTML Escape Helper
+    // ---------------------------------------------------------
+    private String escapeHtml(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
