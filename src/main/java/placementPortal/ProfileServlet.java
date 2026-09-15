@@ -4,9 +4,9 @@ package placementPortal;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,14 +19,6 @@ import javax.servlet.http.HttpSession;
 public class ProfileServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "Yoganjali@123";
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -446,13 +438,15 @@ public class ProfileServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // ==========================================
+            // DATABASE CONNECTION
+            // ==========================================
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
+            con = DBConnection.getConnection();
+
+            // ==========================================
+            // GET STUDENT PROFILE
+            // ==========================================
 
             String sql =
                     "SELECT id, name, email, phone_no, branch, "
@@ -470,18 +464,39 @@ public class ProfileServlet extends HttpServlet {
 
             if (rs.next()) {
 
-                String name = rs.getString("name");
-                String email = rs.getString("email");
-                String phone = rs.getString("phone_no");
-                String branch = rs.getString("branch");
-                String collegeName = rs.getString("college_name");
-                double cgpa = rs.getDouble("cgpa");
-                String gender = rs.getString("gender");
-                String disabled = rs.getString("disabled");
-                String skills = rs.getString("skills");
-                String address = rs.getString("address");
+                String name =
+                        rs.getString("name");
+
+                String email =
+                        rs.getString("email");
+
+                String phone =
+                        rs.getString("phone_no");
+
+                String branch =
+                        rs.getString("branch");
+
+                String collegeName =
+                        rs.getString("college_name");
+
+                double cgpa =
+                        rs.getDouble("cgpa");
+
+                String gender =
+                        rs.getString("gender");
+
+                String disabled =
+                        rs.getString("disabled");
+
+                String skills =
+                        rs.getString("skills");
+
+                String address =
+                        rs.getString("address");
+
                 String placementStatus =
                         rs.getString("placement_status");
+
                 String previousCompany =
                         rs.getString("previous_company");
 
@@ -658,39 +673,58 @@ public class ProfileServlet extends HttpServlet {
             } else {
 
                 out.println("<div class='error-box'>");
+
                 out.println("Student profile could not be found.");
+
                 out.println("</div>");
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
 
             e.printStackTrace();
 
             out.println("<div class='error-box'>");
+
             out.println("Unable to load your profile.");
+
             out.println("</div>");
 
         } finally {
 
+            // Close ResultSet
+
             try {
+
                 if (rs != null) {
                     rs.close();
                 }
-            } catch (Exception e) {
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
+            // Close PreparedStatement
+
             try {
+
                 if (ps != null) {
                     ps.close();
                 }
-            } catch (Exception e) {
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
+            // Close Connection
+
             try {
+
                 if (con != null) {
                     con.close();
                 }
-            } catch (Exception e) {
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
 
@@ -718,9 +752,11 @@ public class ProfileServlet extends HttpServlet {
         out.println("</div>");
 
         out.println("<div class='profile-value'>");
+
         out.println(value == null || value.isEmpty()
                 ? "Not provided"
                 : value);
+
         out.println("</div>");
 
         out.println("</div>");
