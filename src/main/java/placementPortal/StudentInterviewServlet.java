@@ -1,9 +1,9 @@
+
 package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -18,19 +18,6 @@ import javax.servlet.http.HttpSession;
 public class StudentInterviewServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
-    // ==============================
-    // DATABASE
-    // ==============================
-
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-
-    private static final String DB_USER = "root";
-
-    private static final String DB_PASSWORD =
-            "YOUR_DATABASE_PASSWORD";
-
 
     // ==============================
     // GET METHOD
@@ -51,7 +38,6 @@ public class StudentInterviewServlet extends HttpServlet {
 
         response.setDateHeader("Expires", 0);
 
-
         // ==============================
         // CHECK STUDENT LOGIN
         // ==============================
@@ -65,7 +51,6 @@ public class StudentInterviewServlet extends HttpServlet {
             return;
         }
 
-
         int studentId;
 
         try {
@@ -78,11 +63,9 @@ public class StudentInterviewServlet extends HttpServlet {
             return;
         }
 
-
         response.setContentType("text/html;charset=UTF-8");
 
         PrintWriter out = response.getWriter();
-
 
         // ==============================
         // DATABASE VARIABLES
@@ -92,20 +75,16 @@ public class StudentInterviewServlet extends HttpServlet {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-
         try {
 
-            // Load MySQL driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // ==============================
+            // CONNECT TO DATABASE
+            // ==============================
+            // DBConnection automatically chooses
+            // Railway MySQL when deployed and
+            // local MySQL when running locally.
 
-
-            // Connect to database
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
-
+            con = DBConnection.getConnection();
 
             // ==============================
             // GET STUDENT INTERVIEWS
@@ -132,13 +111,11 @@ public class StudentInterviewServlet extends HttpServlet {
                     + "ORDER BY i.interview_date ASC, "
                     + "i.interview_time ASC";
 
-
             ps = con.prepareStatement(sql);
 
             ps.setInt(1, studentId);
 
             rs = ps.executeQuery();
-
 
             // ==============================
             // HTML PAGE
@@ -154,7 +131,6 @@ public class StudentInterviewServlet extends HttpServlet {
                     + "content='width=device-width, initial-scale=1.0'>");
 
             out.println("<title>My Interviews</title>");
-
 
             // ==============================
             // CSS
@@ -179,8 +155,9 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    min-height: 100vh;");
             out.println("}");
 
-
+            // ==============================
             // SIDEBAR
+            // ==============================
 
             out.println(".sidebar {");
             out.println("    width: 240px;");
@@ -239,8 +216,9 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    color: #f0b8b8;");
             out.println("}");
 
-
+            // ==============================
             // MAIN
+            // ==============================
 
             out.println(".main {");
             out.println("    margin-left: 240px;");
@@ -267,8 +245,9 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    font-size: 13px;");
             out.println("}");
 
-
+            // ==============================
             // CARD
+            // ==============================
 
             out.println(".card {");
             out.println("    background: white;");
@@ -284,8 +263,9 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    margin-bottom: 20px;");
             out.println("}");
 
-
+            // ==============================
             // INTERVIEW BOX
+            // ==============================
 
             out.println(".interview {");
             out.println("    border: 1px solid #dfe5ec;");
@@ -311,6 +291,10 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    font-size: 12px;");
             out.println("    margin-bottom: 15px;");
             out.println("}");
+
+            // ==============================
+            // DETAILS
+            // ==============================
 
             out.println(".details {");
             out.println("    display: grid;");
@@ -338,6 +322,10 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    font-weight: 600;");
             out.println("}");
 
+            // ==============================
+            // REMARKS
+            // ==============================
+
             out.println(".remarks {");
             out.println("    margin-top: 15px;");
             out.println("    padding: 13px;");
@@ -355,6 +343,10 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    color: #596579;");
             out.println("}");
 
+            // ==============================
+            // MEETING LINK
+            // ==============================
+
             out.println(".meeting {");
             out.println("    margin-top: 15px;");
             out.println("}");
@@ -369,6 +361,14 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    font-size: 12px;");
             out.println("}");
 
+            out.println(".meeting a:hover {");
+            out.println("    background: #263f64;");
+            out.println("}");
+
+            // ==============================
+            // EMPTY MESSAGE
+            // ==============================
+
             out.println(".empty {");
             out.println("    text-align: center;");
             out.println("    padding: 50px 20px;");
@@ -379,6 +379,10 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("    color: #172b4d;");
             out.println("    margin-bottom: 8px;");
             out.println("}");
+
+            // ==============================
+            // MOBILE
+            // ==============================
 
             out.println("@media(max-width:800px) {");
 
@@ -402,7 +406,6 @@ public class StudentInterviewServlet extends HttpServlet {
 
             out.println("</head>");
 
-
             // ==============================
             // BODY
             // ==============================
@@ -410,7 +413,6 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("<body>");
 
             out.println("<div class='layout'>");
-
 
             // ==============================
             // SIDEBAR
@@ -448,7 +450,6 @@ public class StudentInterviewServlet extends HttpServlet {
 
             out.println("</aside>");
 
-
             // ==============================
             // MAIN CONTENT
             // ==============================
@@ -466,14 +467,11 @@ public class StudentInterviewServlet extends HttpServlet {
 
             out.println("</div>");
 
-
             out.println("<div class='card'>");
 
             out.println("<h2>Scheduled Interviews</h2>");
 
-
             boolean found = false;
-
 
             // ==============================
             // DISPLAY INTERVIEWS
@@ -513,11 +511,11 @@ public class StudentInterviewServlet extends HttpServlet {
                 String status =
                         rs.getString("status");
 
-
                 out.println("<div class='interview'>");
 
-
+                // ==============================
                 // COMPANY
+                // ==============================
 
                 out.println("<div class='company'>"
                         + escapeHtml(companyName)
@@ -528,11 +526,11 @@ public class StudentInterviewServlet extends HttpServlet {
                         + escapeHtml(companyId)
                         + "</div>");
 
-
+                // ==============================
                 // DETAILS
+                // ==============================
 
                 out.println("<div class='details'>");
-
 
                 // DATE
 
@@ -546,7 +544,6 @@ public class StudentInterviewServlet extends HttpServlet {
 
                 out.println("</div>");
 
-
                 // TIME
 
                 out.println("<div class='detail'>");
@@ -558,7 +555,6 @@ public class StudentInterviewServlet extends HttpServlet {
                         + "</div>");
 
                 out.println("</div>");
-
 
                 // MODE
 
@@ -572,7 +568,6 @@ public class StudentInterviewServlet extends HttpServlet {
 
                 out.println("</div>");
 
-
                 // INTERVIEWER
 
                 out.println("<div class='detail'>");
@@ -584,7 +579,6 @@ public class StudentInterviewServlet extends HttpServlet {
                         + "</div>");
 
                 out.println("</div>");
-
 
                 // LOCATION
 
@@ -602,7 +596,6 @@ public class StudentInterviewServlet extends HttpServlet {
                     out.println("</div>");
                 }
 
-
                 // STATUS
 
                 out.println("<div class='detail'>");
@@ -615,11 +608,11 @@ public class StudentInterviewServlet extends HttpServlet {
 
                 out.println("</div>");
 
-
                 out.println("</div>");
 
-
+                // ==============================
                 // REMARKS
+                // ==============================
 
                 if (remarks != null
                         && !remarks.trim().isEmpty()) {
@@ -635,8 +628,9 @@ public class StudentInterviewServlet extends HttpServlet {
                     out.println("</div>");
                 }
 
-
+                // ==============================
                 // MEETING LINK
+                // ==============================
 
                 if (meetingLink != null
                         && !meetingLink.trim().isEmpty()) {
@@ -654,10 +648,8 @@ public class StudentInterviewServlet extends HttpServlet {
                     out.println("</div>");
                 }
 
-
                 out.println("</div>");
             }
-
 
             // ==============================
             // NO INTERVIEWS
@@ -677,7 +669,6 @@ public class StudentInterviewServlet extends HttpServlet {
                 out.println("</div>");
             }
 
-
             out.println("</div>");
 
             out.println("</main>");
@@ -687,7 +678,6 @@ public class StudentInterviewServlet extends HttpServlet {
             out.println("</body>");
 
             out.println("</html>");
-
 
         } catch (Exception e) {
 
@@ -727,7 +717,6 @@ public class StudentInterviewServlet extends HttpServlet {
         }
     }
 
-
     // ==============================
     // HTML ESCAPE
     // ==============================
@@ -746,9 +735,8 @@ public class StudentInterviewServlet extends HttpServlet {
                 .replace("'", "&#39;");
     }
 
-
     // ==============================
-    // POST
+    // POST METHOD
     // ==============================
 
     @Override
@@ -756,8 +744,8 @@ public class StudentInterviewServlet extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Students should not modify interviews.
-        // Only display the interview page.
+        // Students cannot create or modify interviews.
+        // Only the admin can manage interviews.
 
         response.sendRedirect("StudentInterviewServlet");
     }

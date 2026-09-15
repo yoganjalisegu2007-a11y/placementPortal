@@ -1,10 +1,8 @@
-
 package placementPortal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -20,11 +18,6 @@ public class ApplyServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/placement_portal";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "Yoganjali@123";
-
     @Override
     protected void doGet(HttpServletRequest request,
                           HttpServletResponse response)
@@ -32,7 +25,10 @@ public class ApplyServlet extends HttpServlet {
 
         response.setContentType("text/html; charset=UTF-8");
 
-        // Check student login
+        // ==========================================
+        // CHECK STUDENT LOGIN
+        // ==========================================
+
         HttpSession session = request.getSession(false);
 
         if (session == null ||
@@ -42,39 +38,65 @@ public class ApplyServlet extends HttpServlet {
             return;
         }
 
-        // Get student ID
+        // ==========================================
+        // GET STUDENT ID
+        // ==========================================
+
         int studentId;
 
         try {
-            studentId = (Integer) session.getAttribute("studentId");
+
+            Object studentIdObject =
+                    session.getAttribute("studentId");
+
+            studentId = Integer.parseInt(
+                    studentIdObject.toString()
+            );
+
         } catch (Exception e) {
+
             response.sendRedirect("LoginServlet");
             return;
         }
 
-        // Get company ID from URL
-        String companyIdParameter = request.getParameter("companyId");
+        // ==========================================
+        // GET COMPANY ID
+        // ==========================================
+
+        String companyIdParameter =
+                request.getParameter("companyId");
 
         if (companyIdParameter == null ||
             companyIdParameter.trim().isEmpty()) {
 
-            showMessage(response,
+            showMessage(
+                    response,
                     "Invalid Company",
                     "Company ID is missing.",
-                    "StudentCompanyServlet");
+                    "StudentCompanyServlet"
+            );
+
             return;
         }
 
         int companyId;
 
         try {
-            companyId = Integer.parseInt(companyIdParameter);
+
+            companyId =
+                    Integer.parseInt(
+                            companyIdParameter.trim()
+                    );
+
         } catch (NumberFormatException e) {
 
-            showMessage(response,
+            showMessage(
+                    response,
                     "Invalid Company",
                     "Invalid company ID.",
-                    "StudentCompanyServlet");
+                    "StudentCompanyServlet"
+            );
+
             return;
         }
 
@@ -84,22 +106,29 @@ public class ApplyServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // ==========================================
+            // CONNECT TO DATABASE
+            // ==========================================
 
-            con = DriverManager.getConnection(
-                    DB_URL,
-                    DB_USER,
-                    DB_PASSWORD
-            );
+            // IMPORTANT:
+            // DBConnection automatically uses
+            // Railway MySQL when deployed online
+            // and local MySQL when running locally.
 
-            // ------------------------------------------------
-            // STEP 1: Check whether company exists
-            // ------------------------------------------------
+            con = DBConnection.getConnection();
+
+            // ==========================================
+            // STEP 1:
+            // CHECK WHETHER COMPANY EXISTS
+            // ==========================================
 
             String companySQL =
-                    "SELECT id, name FROM companies WHERE id = ?";
+                    "SELECT id, name " +
+                    "FROM companies " +
+                    "WHERE id = ?";
 
             ps = con.prepareStatement(companySQL);
+
             ps.setInt(1, companyId);
 
             rs = ps.executeQuery();
@@ -107,28 +136,41 @@ public class ApplyServlet extends HttpServlet {
             String companyName = null;
 
             if (rs.next()) {
-                companyName = rs.getString("name");
+
+                companyName =
+                        rs.getString("name");
             }
 
             rs.close();
+            rs = null;
+
             ps.close();
+            ps = null;
+
+            // Company doesn't exist
 
             if (companyName == null) {
 
-                showMessage(response,
+                showMessage(
+                        response,
                         "Company Not Found",
                         "The selected company does not exist.",
-                        "StudentCompanyServlet");
+                        "StudentCompanyServlet"
+                );
+
                 return;
             }
 
-            // ------------------------------------------------
-            // STEP 2: Check duplicate application
-            // ------------------------------------------------
+            // ==========================================
+            // STEP 2:
+            // CHECK DUPLICATE APPLICATION
+            // ==========================================
 
             String checkSQL =
-                    "SELECT id FROM applications " +
-                    "WHERE student_id = ? AND company_id = ?";
+                    "SELECT id " +
+                    "FROM applications " +
+                    "WHERE student_id = ? " +
+                    "AND company_id = ?";
 
             ps = con.prepareStatement(checkSQL);
 
@@ -140,84 +182,129 @@ public class ApplyServlet extends HttpServlet {
             if (rs.next()) {
 
                 rs.close();
-                ps.close();
+                rs = null;
 
-                showMessage(response,
+                ps.close();
+                ps = null;
+
+                showMessage(
+                        response,
                         "Already Applied",
-                        "You have already applied to " +
-                        escapeHtml(companyName) + ".",
-                        "AppliedServlet");
+                        "You have already applied to "
+                        + escapeHtml(companyName)
+                        + ".",
+                        "AppliedServlet"
+                );
+
                 return;
             }
 
             rs.close();
-            ps.close();
+            rs = null;
 
-            // ------------------------------------------------
-            // STEP 3: Insert application
-            // ------------------------------------------------
+            ps.close();
+            ps = null;
+
+            // ==========================================
+            // STEP 3:
+            // INSERT APPLICATION
+            // ==========================================
 
             String insertSQL =
                     "INSERT INTO applications " +
                     "(student_id, company_id, status) " +
-                    "VALUES (?, ?, 'APPLIED')";
+                    "VALUES (?, ?, ?)";
 
             ps = con.prepareStatement(insertSQL);
 
             ps.setInt(1, studentId);
             ps.setInt(2, companyId);
+            ps.setString(3, "APPLIED");
 
-            int rows = ps.executeUpdate();
+            int rows =
+                    ps.executeUpdate();
+
+            // ==========================================
+            // APPLICATION SUCCESS
+            // ==========================================
 
             if (rows > 0) {
 
-                response.sendRedirect("AppliedServlet");
+                response.sendRedirect(
+                        "AppliedServlet"
+                );
 
             } else {
 
-                showMessage(response,
+                showMessage(
+                        response,
                         "Application Failed",
                         "Your application could not be submitted.",
-                        "StudentCompanyServlet");
+                        "StudentCompanyServlet"
+                );
             }
 
         } catch (Exception e) {
 
+            // Print complete error in Railway logs
             e.printStackTrace();
 
-            showMessage(response,
+            showMessage(
+                    response,
                     "Error",
                     "Something went wrong while submitting your application.",
-                    "StudentCompanyServlet");
+                    "StudentCompanyServlet"
+            );
 
         } finally {
 
+            // ==========================================
+            // CLOSE RESULT SET
+            // ==========================================
+
             try {
+
                 if (rs != null) {
                     rs.close();
                 }
+
             } catch (Exception e) {
+                e.printStackTrace();
             }
 
+            // ==========================================
+            // CLOSE STATEMENT
+            // ==========================================
+
             try {
+
                 if (ps != null) {
                     ps.close();
                 }
+
             } catch (Exception e) {
+                e.printStackTrace();
             }
 
+            // ==========================================
+            // CLOSE CONNECTION
+            // ==========================================
+
             try {
+
                 if (con != null) {
                     con.close();
                 }
+
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
-    // ------------------------------------------------
-    // POST also uses the same application process
-    // ------------------------------------------------
+    // ==============================================
+    // POST REQUEST
+    // ==============================================
 
     @Override
     protected void doPost(HttpServletRequest request,
@@ -227,23 +314,37 @@ public class ApplyServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // ------------------------------------------------
-    // Message page
-    // ------------------------------------------------
+    // ==============================================
+    // SHOW MESSAGE
+    // ==============================================
 
-    private void showMessage(HttpServletResponse response,
-                             String title,
-                             String message,
-                             String redirectPage)
+    private void showMessage(
+            HttpServletResponse response,
+            String title,
+            String message,
+            String redirectPage)
             throws IOException {
 
-        PrintWriter out = response.getWriter();
+        PrintWriter out =
+                response.getWriter();
 
         out.println("<!DOCTYPE html>");
         out.println("<html>");
+
         out.println("<head>");
+
         out.println("<meta charset='UTF-8'>");
-        out.println("<title>" + escapeHtml(title) + "</title>");
+
+        out.println(
+                "<meta name='viewport' " +
+                "content='width=device-width, initial-scale=1.0'>"
+        );
+
+        out.println(
+                "<title>"
+                + escapeHtml(title)
+                + "</title>"
+        );
 
         out.println("<style>");
 
@@ -267,6 +368,7 @@ public class ApplyServlet extends HttpServlet {
                 "box-shadow:0 10px 30px rgba(0,0,0,0.12);" +
                 "text-align:center;" +
                 "width:400px;" +
+                "max-width:80%;" +
                 "}"
         );
 
@@ -296,29 +398,43 @@ public class ApplyServlet extends HttpServlet {
         );
 
         out.println("</style>");
+
         out.println("</head>");
 
         out.println("<body>");
 
         out.println("<div class='box'>");
 
-        out.println("<h2>" + escapeHtml(title) + "</h2>");
+        out.println(
+                "<h2>"
+                + escapeHtml(title)
+                + "</h2>"
+        );
 
-        out.println("<p>" + message + "</p>");
+        out.println(
+                "<p>"
+                + message
+                + "</p>"
+        );
 
-        out.println("<a class='btn' href='" +
-                escapeHtml(redirectPage) +
-                "'>Continue</a>");
+        out.println(
+                "<a class='btn' href='"
+                + escapeHtml(redirectPage)
+                + "'>"
+                + "Continue"
+                + "</a>"
+        );
 
         out.println("</div>");
 
         out.println("</body>");
+
         out.println("</html>");
     }
 
-    // ------------------------------------------------
-    // HTML escape
-    // ------------------------------------------------
+    // ==============================================
+    // HTML ESCAPE
+    // ==============================================
 
     private String escapeHtml(String value) {
 
